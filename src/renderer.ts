@@ -52,52 +52,52 @@ float ellipse(vec2 p, vec2 center, vec2 scale) {
 void main() {
   vec2 p=(uv-0.5)*vec2(resolution.x/resolution.y,1.0);
   // Параметры морфологии сами медленно дрейфуют, голос добавляет небольшие отклонения.
-  float dynamicSymmetry=clamp(symmetry + sin(time*0.19)*0.22 + sin(time*0.071+mid*2.0)*0.10 - motion*0.12 - roughness*0.08,0.0,1.0);
-  float dynamicComplexity=clamp(complexity + sin(time*0.23+1.7)*0.20 + sin(time*0.093+low*3.0)*0.10 + flux*0.12 + roughness*0.12 + brightness*0.08,0.1,1.0);
+  float dynamicSymmetry=clamp(symmetry + sin(time*0.11)*0.055 + sin(time*0.043+mid*1.4)*0.025 - motion*0.025 - roughness*0.018,0.82,1.0);
+  float dynamicComplexity=clamp(complexity + sin(time*0.13+1.7)*0.09 + sin(time*0.052+low*2.0)*0.045 + flux*0.035 + roughness*0.035 + brightness*0.025,0.22,0.82);
   float mirror=mix(p.x,abs(p.x),dynamicSymmetry);
   vec2 q=vec2(mirror,p.y);
-  float t=time*0.32;
+  float t=time*0.22;
   // Самостоятельное движение сохраняется даже в тишине.
-  float drift=sin(t*1.15+q.y*8.0)*0.012+sin(t*0.73+q.x*11.0)*0.009;
+  float drift=sin(t*0.72+q.y*6.0)*0.009+sin(t*0.48+q.x*8.0)*0.006;
   float n=fbm(q*5.0+vec2(t*0.75,-t*0.55));
   float angle=atan(q.y,q.x);
   float radial=length(q);
-  float voiceMotion=low*0.035+mid*0.045+high*0.035+motion*0.09+flux*0.08+onset*0.045+rhythm*0.035;
-  float gesture=sin(t*5.2+angle*3.0+mid*8.0+pitch*4.0)*motion*0.035 + sin(t*3.0+angle*2.0)*rhythm*0.018 + onset*0.025;
-  float flutter=sin(t*13.0+angle*17.0+high*9.0)*flux*0.012 + sin(t*19.0+angle*23.0)*breath*0.009 + sin(t*8.0+angle*7.0)*roughness*0.012 + sin(t*22.0+angle*29.0)*flatness*0.008 + sin(t*15.0+angle*13.0)*zeroCrossing*0.007;
+  float voiceMotion=low*0.022+mid*0.026+high*0.018+motion*0.045+flux*0.025+onset*0.012+rhythm*0.018;
+  float gesture=sin(t*3.2+angle*2.2+mid*5.0+pitch*2.5)*motion*0.018 + sin(t*2.0+angle*1.5)*rhythm*0.009 + onset*0.008;
+  float flutter=sin(t*7.0+angle*11.0+high*5.0)*flux*0.004 + sin(t*10.0+angle*15.0)*breath*0.004 + sin(t*5.0+angle*5.0)*roughness*0.004 + sin(t*12.0+angle*19.0)*flatness*0.002 + sin(t*8.0+angle*9.0)*zeroCrossing*0.002;
   // Несколько семейств силуэтов плавно сменяют друг друга: округлые, волнистые и вытянутые.
-  float morphA=0.5+0.5*sin(time*0.105+sin(time*0.037)*1.7);
-  float morphB=0.5+0.5*sin(time*0.081+2.2+sin(time*0.029)*1.3);
-  float silhouetteRound=sin(angle*2.0+t*0.42+n*2.0)*0.035+sin(angle*3.0-t*0.31)*0.022;
-  float silhouetteWave=sin(angle*(6.0+dynamicComplexity*3.0)+t*0.7+n*4.0)*0.031+sin(angle*11.0-t*0.5)*0.014;
-  float silhouetteFlow=cos(angle*2.0-t*0.35+pitch*2.0)*0.045+sin(angle*4.0+t*0.28+n*3.0)*0.025 + cos(angle*5.0+t*0.8)*breath*0.018;
+  float morphA=0.5+0.5*sin(time*0.052+sin(time*0.021)*1.2);
+  float morphB=0.5+0.5*sin(time*0.041+2.2+sin(time*0.017)*1.0);
+  float silhouetteRound=sin(angle*2.0+t*0.28+n*1.5)*0.025+sin(angle*3.0-t*0.2)*0.014;
+  float silhouetteWave=sin(angle*(5.0+dynamicComplexity*2.0)+t*0.42+n*3.0)*0.021+sin(angle*9.0-t*0.3)*0.009;
+  float silhouetteFlow=cos(angle*2.0-t*0.22+pitch*1.5)*0.028+sin(angle*4.0+t*0.18+n*2.0)*0.016 + cos(angle*5.0+t*0.45)*breath*0.008;
   float silhouette=mix(mix(silhouetteRound,silhouetteWave,morphA),silhouetteFlow,morphB*0.72);
-  float lobes=sin(angle*(5.0+dynamicComplexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)*(0.012+voiceMotion*0.55)*dynamicComplexity;
-  float ripple=sin(angle*11.0-t*2.1+high*8.0+flux*5.0)*(high*0.012+flux*0.025);
-  float pulse=0.012+level*0.018+low*0.035+gesture;
-  float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.095*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.018 + (harmonics-0.5)*0.018 + onset*0.025 + (zeroCrossing-0.5)*0.012;
+  float lobes=sin(angle*(5.0+dynamicComplexity*6.0)+n*3.0+t*0.8+low*2.0+mid*1.2)*(0.008+voiceMotion*0.28)*dynamicComplexity;
+  float ripple=sin(angle*8.0-t*1.2+high*5.0+flux*2.0)*(high*0.005+flux*0.008);
+  float pulse=0.008+level*0.012+low*0.018+gesture;
+  float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.055*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.009 + (harmonics-0.5)*0.008 + onset*0.008 + (zeroCrossing-0.5)*0.005;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
   float vein=sin((q.x*(13.0+brightness*9.0)+fbm(q*8.0+t)*2.0)*3.0+q.y*9.0+mid*5.0+pitch*7.0)*0.5+0.5;
   float detail=smoothstep(0.58,0.9,vein)*inner*0.45;
   // Автоматический цветовой цикл; голос ускоряет и смещает переливы.
-  float colorPhase=t*0.62+low*2.8+mid*2.1+high*1.6+motion*2.4+flux*3.0+pitch*1.8+brightness*1.4+rhythm*1.1;
+  float colorPhase=t*0.24+low*0.8+mid*0.65+high*0.45+motion*0.45+flux*0.35+pitch*0.55+brightness*0.35+rhythm*0.3;
   float colorWave=0.5+0.5*sin(colorPhase+n*2.2);
-  float colorAccent=0.5+0.5*sin(colorPhase*0.73+2.1+high*3.0+motion*4.0+breath*3.0+voicing*2.0);
+  float colorAccent=0.5+0.5*sin(colorPhase*0.55+2.1+high*1.2+motion*0.8+breath*1.0+voicing*0.8);
   vec3 spectral=0.5+0.5*cos(colorPhase+vec3(0.0,2.1,4.2));
   vec3 body=mix(colorA,colorB,clamp(colorWave*0.82+n*0.18,0.0,1.0));
-  body=mix(body,colorC,detail*(0.45+colorAccent*0.8));
-  body=mix(body,body*vec3(0.72,0.88,1.18),breath*0.22);
-  body=mix(body,body*vec3(1.15,0.78,1.08),roughness*0.16);
-  body=mix(body,body*(0.55+spectral*0.9)+spectral*0.12,0.28+motion*0.32+flux*0.22);
+  body=mix(body,colorC,detail*(0.22+colorAccent*0.38));
+  body=mix(body,body*vec3(0.88,0.94,1.05),breath*0.10);
+  body=mix(body,body*vec3(1.04,0.94,1.02),roughness*0.07);
+  body=mix(body,body*(0.78+spectral*0.34)+spectral*0.035,0.07+motion*0.07+flux*0.04);
   body*=0.72+0.28*fbm(q*18.0+t);
-  float glow=exp(-abs(organic)*28.0)*(0.55+high*0.45+mid*0.18+voicing*0.18+harmonics*0.12);
+  float glow=exp(-abs(organic)*24.0)*(0.38+high*0.22+mid*0.10+voicing*0.08+harmonics*0.05);
   vec3 col=body*edge+colorB*glow*edge;
   col+=colorA*detail*edge;
 
   // Всегда два отдельных глаза по обе стороны центра; радужки переливаются независимо от громкости.
-  float eyeX=0.052+sin(t*1.7+mid*2.0)*0.008+high*0.006+pitch*0.003;
+  float eyeX=0.052+sin(t*0.9+mid)*0.004+high*0.002+pitch*0.001;
   // Нерегулярное моргание примерно раз в несколько секунд, иногда с коротким повтором.
   float blinkPhase=fract(time*0.115+sin(time*0.31)*0.025);
   float blink=1.0-smoothstep(0.012,0.045,abs(blinkPhase-0.105));
@@ -106,18 +106,18 @@ void main() {
   for(int sideIndex=0; sideIndex<2; sideIndex++) {
     float side=sideIndex==0 ? -1.0 : 1.0;
     vec2 eyePos=vec2(side*eyeX,0.035+sin(t*1.25+mid*2.0+float(sideIndex))*0.012);
-    float eyeHeight=mix(0.043+level*0.008+low*0.006,0.0045,blink);
+    float eyeHeight=mix(0.043+level*0.004+low*0.003,0.0045,blink);
     float e=ellipse(p,eyePos,vec2(0.027+mid*0.010,eyeHeight));
     float eye=1.0-smoothstep(0.82,1.0,e);
     float pupil=1.0-smoothstep(0.24,0.36,ellipse(p,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
-    vec3 iris=0.5+0.5*cos(colorPhase*1.35+vec3(0.0,2.1,4.2)+vec3(high*3.0,mid*2.0,low*2.5)+float(sideIndex)*1.3+brightness*2.0);
+    vec3 iris=0.5+0.5*cos(colorPhase*0.65+vec3(0.0,2.1,4.2)+vec3(high,mid*0.8,low)+float(sideIndex)*0.8+brightness*0.6);
     vec3 eyeBase=mix(vec3(0.025,0.018,0.04),iris,0.78);
     col=mix(col,eyeBase,eye*edge);
     col=mix(col,vec3(0.96,0.96,1.0),pupil*eye*edge);
     float eyeSpark=1.0-smoothstep(0.0,0.012,length(p-(eyePos+vec2(-0.008,0.012))));
     col+=iris*eyeSpark*eye*edge*(1.0-blink)*0.65;
   }
-  float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*2.0)*0.004),vec2(0.018+mid*0.045+level*0.025+onset*0.012,0.006+mid*0.018+level*0.012+pitch*0.006)));
+  float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*1.0)*0.002),vec2(0.018+mid*0.022+level*0.012+onset*0.004,0.006+mid*0.009+level*0.006+pitch*0.003)));
   col=mix(col,vec3(0.035,0.012,0.035),mouth*edge*0.9);
 
   float halo=exp(-radial*3.2)*0.045;
@@ -127,11 +127,11 @@ void main() {
 
 type Palette = { a: [number,number,number]; b: [number,number,number]; c: [number,number,number] };
 const palettes: Record<string, Palette> = {
-  violet: { a:[0.22,0.12,0.48], b:[0.72,0.25,0.85], c:[0.15,0.82,0.78] },
-  acid: { a:[0.12,0.34,0.18], b:[0.68,0.92,0.12], c:[0.95,0.42,0.12] },
-  ember: { a:[0.38,0.07,0.09], b:[0.95,0.28,0.12], c:[1.0,0.72,0.25] },
-  ice: { a:[0.08,0.24,0.42], b:[0.25,0.72,0.9], c:[0.72,0.95,1.0] },
-  mono: { a:[0.16,0.17,0.22], b:[0.72,0.76,0.82], c:[0.98,0.98,1.0] },
+  violet: { a:[0.24,0.20,0.38], b:[0.54,0.43,0.66], c:[0.42,0.62,0.61] },
+  acid: { a:[0.24,0.34,0.27], b:[0.57,0.65,0.38], c:[0.68,0.48,0.32] },
+  ember: { a:[0.36,0.20,0.22], b:[0.66,0.39,0.32], c:[0.72,0.58,0.40] },
+  ice: { a:[0.20,0.30,0.39], b:[0.43,0.60,0.68], c:[0.66,0.75,0.77] },
+  mono: { a:[0.22,0.23,0.27], b:[0.56,0.58,0.62], c:[0.78,0.79,0.80] },
 };
 
 export class Creature {
@@ -176,8 +176,8 @@ export class Creature {
   resize(width:number,height:number) { this.gl.viewport(0,0,width,height); }
   setPalette(name:string) { this.palette=palettes[name] || palettes.violet; }
   randomize() {
-    this.params.symmetry=Math.random()>0.25?1:Math.random()*0.6;
-    this.params.complexity=0.25+Math.random()*0.75;
+    this.params.symmetry=Math.random()>0.12?1:0.84+Math.random()*0.12;
+    this.params.complexity=0.32+Math.random()*0.38;
     this.palette=Object.values(palettes)[Math.floor(Math.random()*5)];
   }
 
