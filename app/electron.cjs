@@ -5,10 +5,12 @@ if (process.platform === 'linux') app.commandLine.appendSwitch('no-sandbox');
 
 let win;
 let obsMode = false;
+let lastDragPoint = null;
 
 function setObsMode(enabled) {
   if (!win || win.isDestroyed()) return false;
   obsMode = enabled;
+  lastDragPoint = null;
   if (enabled) {
     win.setResizable(false);
     win.setMinimumSize(320, 320);
@@ -49,12 +51,23 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => callback(permission === 'media'));
   session.defaultSession.setPermissionCheckHandler((_webContents, permission) => permission === 'media');
   ipcMain.handle('voxmorph:toggle-obs', () => setObsMode(!obsMode));
-  ipcMain.on('voxmorph:move-window', (_event, dx, dy) => {
+  ipcMain.on('voxmorph:drag-start', (_event, screenX, screenY) => {
     if (!obsMode || !win || win.isDestroyed()) return;
-    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
-    const [x, y] = win.getPosition();
-    win.setPosition(Math.round(x + Math.max(-100, Math.min(100, dx))), Math.round(y + Math.max(-100, Math.min(100, dy))));
+    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) return;
+    lastDragPoint = { x: screenX, y: screenY };
   });
+  ipcMain.on('voxmorph:drag-move', (_event, screenX, screenY) => {
+    if (!obsMode || !win || win.isDestroyed() || !lastDragPoint) return;
+    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) return;
+    const dx = screenX - lastDragPoint.x;
+    const dy = screenY - lastDragPoint.y;
+    lastDragPoint = { x: screenX, y: screenY };
+    if (dx || dy) {
+      const [x, y] = win.getPosition();
+      win.setPosition(Math.round(x + dx), Math.round(y + dy));
+    }
+  });
+  ipcMain.on('voxmorph:drag-end', () => { lastDragPoint = null; });
   ipcMain.on('voxmorph:minimize', () => win?.minimize());
   ipcMain.on('voxmorph:close', () => win?.close());
   createWindow();
