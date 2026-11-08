@@ -172,6 +172,7 @@ resizeHandle.addEventListener('pointerdown', (event) => {
   event.preventDefault();
   event.stopPropagation();
   resizing = true;
+  document.body.classList.add('resizing-avatar');
   lastPointerX = event.screenX;
   lastPointerY = event.screenY;
   resizeHandle.setPointerCapture(event.pointerId);
@@ -189,6 +190,7 @@ resizeHandle.addEventListener('pointermove', (event) => {
 function stopResize(event: PointerEvent) {
   if (!resizing) return;
   resizing = false;
+  document.body.classList.remove('resizing-avatar');
   if (resizeHandle.hasPointerCapture(event.pointerId)) resizeHandle.releasePointerCapture(event.pointerId);
 }
 resizeHandle.addEventListener('pointerup', stopResize);
