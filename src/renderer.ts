@@ -64,7 +64,7 @@ void main() {
   float radial=length(q);
   float voiceMotion=low*0.035+mid*0.045+high*0.035+motion*0.09+flux*0.08+onset*0.045+rhythm*0.035;
   float gesture=sin(t*5.2+angle*3.0+mid*8.0+pitch*4.0)*motion*0.035 + sin(t*3.0+angle*2.0)*rhythm*0.018 + onset*0.025;
-  float flutter=sin(t*13.0+angle*17.0+high*9.0)*flux*0.012 + sin(t*19.0+angle*23.0)*breath*0.009 + sin(t*8.0+angle*7.0)*roughness*0.012;
+  float flutter=sin(t*13.0+angle*17.0+high*9.0)*flux*0.012 + sin(t*19.0+angle*23.0)*breath*0.009 + sin(t*8.0+angle*7.0)*roughness*0.012 + sin(t*22.0+angle*29.0)*flatness*0.008 + sin(t*15.0+angle*13.0)*zeroCrossing*0.007;
   // Несколько семейств силуэтов плавно сменяют друг друга: округлые, волнистые и вытянутые.
   float morphA=0.5+0.5*sin(time*0.105+sin(time*0.037)*1.7);
   float morphB=0.5+0.5*sin(time*0.081+2.2+sin(time*0.029)*1.3);
@@ -75,7 +75,7 @@ void main() {
   float lobes=sin(angle*(5.0+dynamicComplexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)*(0.012+voiceMotion*0.55)*dynamicComplexity;
   float ripple=sin(angle*11.0-t*2.1+high*8.0+flux*5.0)*(high*0.012+flux*0.025);
   float pulse=0.012+level*0.018+low*0.035+gesture;
-  float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.095*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.018 + (harmonics-0.5)*0.018 + onset*0.025;
+  float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.095*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.018 + (harmonics-0.5)*0.018 + onset*0.025 + (zeroCrossing-0.5)*0.012;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
