@@ -41,6 +41,7 @@ app.innerHTML = `
         <div class="stage" id="stage">
           <canvas id="creature"></canvas>
           <div id="drag-handle" aria-hidden="true"></div>
+          <div id="resize-handle" title="Потяните, чтобы изменить размер" aria-label="Изменить размер существа"></div>
           <div class="stage-hint" id="hint">НАЖМИ «ЗАПУСТИТЬ МИКРОФОН»<br><small>ИЛИ ГОВОРИ, ЧТОБЫ ОНО ПРОСНУЛОСЬ</small></div>
           <div class="stage-coordinates">WEBGL 2.0 <span>•</span> REALTIME AUDIO</div>
         </div>
@@ -160,6 +161,38 @@ $('minimize').addEventListener('click', () => window.voxmorph?.minimize());
 $('close').addEventListener('click', () => window.voxmorph?.close());
 
 
+
+const resizeHandle = $('resize-handle');
+let resizing = false;
+let lastPointerX = 0;
+let lastPointerY = 0;
+
+resizeHandle.addEventListener('pointerdown', (event) => {
+  if (!document.body.classList.contains('obs-mode')) return;
+  event.preventDefault();
+  event.stopPropagation();
+  resizing = true;
+  lastPointerX = event.screenX;
+  lastPointerY = event.screenY;
+  resizeHandle.setPointerCapture(event.pointerId);
+});
+
+resizeHandle.addEventListener('pointermove', (event) => {
+  if (!resizing) return;
+  const dx = event.screenX - lastPointerX;
+  const dy = event.screenY - lastPointerY;
+  lastPointerX = event.screenX;
+  lastPointerY = event.screenY;
+  window.voxmorph?.resizeWindowBy(dx, dy);
+});
+
+function stopResize(event: PointerEvent) {
+  if (!resizing) return;
+  resizing = false;
+  if (resizeHandle.hasPointerCapture(event.pointerId)) resizeHandle.releasePointerCapture(event.pointerId);
+}
+resizeHandle.addEventListener('pointerup', stopResize);
+resizeHandle.addEventListener('pointercancel', stopResize);
 
 window.voxmorph?.onObsModeChanged((enabled) => {
   document.documentElement.classList.toggle('obs-mode', enabled);
