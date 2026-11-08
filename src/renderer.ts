@@ -62,8 +62,8 @@ void main() {
   float n=fbm(q*5.0+vec2(t*0.75,-t*0.55));
   float angle=atan(q.y,q.x);
   float radial=length(q);
-  float voiceMotion=low*0.022+mid*0.026+high*0.018+motion*0.045+flux*0.025+onset*0.012+rhythm*0.018;
-  float gesture=sin(t*3.2+angle*2.2+mid*5.0+pitch*2.5)*motion*0.018 + sin(t*2.0+angle*1.5)*rhythm*0.009 + onset*0.008;
+  float voiceMotion=low*0.038+mid*0.045+high*0.026+motion*0.075+flux*0.045+onset*0.022+rhythm*0.028;
+  float gesture=sin(t*3.2+angle*2.2+mid*5.0+pitch*2.5)*motion*0.032 + sin(t*2.0+angle*1.5)*rhythm*0.016 + onset*0.014;
   float flutter=sin(t*7.0+angle*11.0+high*5.0)*flux*0.004 + sin(t*10.0+angle*15.0)*breath*0.004 + sin(t*5.0+angle*5.0)*roughness*0.004 + sin(t*12.0+angle*19.0)*flatness*0.002 + sin(t*8.0+angle*9.0)*zeroCrossing*0.002;
   // Несколько семейств силуэтов плавно сменяют друг друга: округлые, волнистые и вытянутые.
   float morphA=0.5+0.5*sin(time*0.052+sin(time*0.021)*1.2);
@@ -74,7 +74,7 @@ void main() {
   float silhouette=mix(mix(silhouetteRound,silhouetteWave,morphA),silhouetteFlow,morphB*0.72);
   float lobes=sin(angle*(5.0+dynamicComplexity*6.0)+n*3.0+t*0.8+low*2.0+mid*1.2)*(0.008+voiceMotion*0.28)*dynamicComplexity;
   float ripple=sin(angle*8.0-t*1.2+high*5.0+flux*2.0)*(high*0.005+flux*0.008);
-  float pulse=0.008+level*0.012+low*0.018+gesture;
+  float pulse=0.008+level*0.022+low*0.028+gesture;
   float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.055*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.009 + (harmonics-0.5)*0.008 + onset*0.008 + (zeroCrossing-0.5)*0.005;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
