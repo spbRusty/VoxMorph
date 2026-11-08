@@ -4,7 +4,9 @@ declare global {
   interface Window {
     voxmorph?: {
       toggleObsMode(): Promise<boolean>;
-      moveWindowBy(dx: number, dy: number): void;
+      beginWindowDrag(screenX: number, screenY: number): void;
+      moveWindowDrag(screenX: number, screenY: number): void;
+      endWindowDrag(): void;
       minimize(): void;
       close(): void;
       onObsModeChanged(callback: (enabled: boolean) => void): void;
