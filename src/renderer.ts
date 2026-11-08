@@ -135,7 +135,7 @@ export class Creature {
   setParameter(name:'symmetry'|'complexity'|'eyes'|'sensitivity',value:number) {
     if(name==='symmetry') this.params.symmetry=value;
     if(name==='complexity') this.params.complexity=value;
-    if(name==='eyes') this.params.eyes=Math.round(value*6);
+    if(name==='eyes') this.params.eyes=Math.round(value);
   }
   setPalette(name:string) { this.palette=palettes[name] || palettes.violet; }
   randomize() {
