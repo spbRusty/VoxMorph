@@ -30,6 +30,7 @@ uniform float onset;
 uniform float harmonics;
 uniform float flatness;
 uniform float zeroCrossing;
+uniform float softness;
 uniform float symmetry;
 uniform float complexity;
 uniform vec3 colorA;
@@ -75,7 +76,7 @@ void main() {
   float lobes=sin(angle*(5.0+dynamicComplexity*6.0)+n*3.0+t*0.8+low*2.0+mid*1.2)*(0.012+voiceMotion*0.58)*dynamicComplexity;
   float ripple=sin(angle*8.0-t*1.2+high*5.0+flux*2.0)*(high*0.012+flux*0.018);
   float pulse=0.012+level*0.045+low*0.05+gesture;
-  float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.055*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.009 + (harmonics-0.5)*0.008 + onset*0.008 + (zeroCrossing-0.5)*0.005;
+  float bodyRadius=(0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.055*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.009 + (harmonics-0.5)*0.008 + onset*0.008 + (zeroCrossing-0.5)*0.005)*(1.0-softness*0.24);
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
@@ -106,7 +107,8 @@ void main() {
   for(int sideIndex=0; sideIndex<2; sideIndex++) {
     float side=sideIndex==0 ? -1.0 : 1.0;
     vec2 eyePos=vec2(side*eyeX,0.035+sin(t*1.25+mid*2.0+float(sideIndex))*0.012);
-    float eyeHeight=mix(0.043+level*0.012+low*0.009+onset*0.006,0.0045,blink);
+    float eyeHeight=mix(0.043+level*0.012+low*0.009+onset*0.006,0.0032,softness);
+    eyeHeight=mix(eyeHeight,0.0045,blink);
     float e=ellipse(p,eyePos,vec2(0.027+mid*0.018+level*0.008,eyeHeight));
     float eye=1.0-smoothstep(0.82,1.0,e);
     float pupil=1.0-smoothstep(0.24,0.36,ellipse(p,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
@@ -153,7 +155,7 @@ export class Creature {
     const loc = gl.getAttribLocation(this.program, 'position');
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    for (const name of ['resolution','time','level','low','mid','high','motion','flux','pitch','breath','voicing','brightness','roughness','rhythm','onset','harmonics','flatness','zeroCrossing','symmetry','complexity','colorA','colorB','colorC']) {
+    for (const name of ['resolution','time','level','low','mid','high','motion','flux','pitch','breath','voicing','brightness','roughness','rhythm','onset','harmonics','flatness','zeroCrossing','softness','symmetry','complexity','colorA','colorB','colorC']) {
       this.uniforms[name] = gl.getUniformLocation(this.program, name);
     }
   }
@@ -202,6 +204,7 @@ export class Creature {
     gl.uniform1f(u.harmonics,audio.harmonics);
     gl.uniform1f(u.flatness,audio.flatness);
     gl.uniform1f(u.zeroCrossing,audio.zeroCrossing);
+    gl.uniform1f(u.softness,audio.softness);
     gl.uniform1f(u.symmetry,this.params.symmetry);
     gl.uniform1f(u.complexity,this.params.complexity);
     gl.uniform3fv(u.colorA,p.a);
