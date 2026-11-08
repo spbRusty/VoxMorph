@@ -42,7 +42,7 @@ export class Microphone {
     await this.context.resume();
     this.analyser = this.context.createAnalyser();
     this.analyser.fftSize = 2048;
-    this.analyser.smoothingTimeConstant = 0.55;
+    this.analyser.smoothingTimeConstant = 0.32;
     this.source = this.context.createMediaStreamSource(this.stream);
     this.source.connect(this.analyser);
     this.frequency = new Uint8Array(this.analyser.frequencyBinCount);
