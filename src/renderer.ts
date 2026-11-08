@@ -18,6 +18,8 @@ uniform float level;
 uniform float low;
 uniform float mid;
 uniform float high;
+uniform float motion;
+uniform float flux;
 uniform float symmetry;
 uniform float complexity;
 uniform float eyes;
@@ -48,22 +50,26 @@ void main() {
   float n=fbm(q*5.0+vec2(t*0.75,-t*0.55));
   float angle=atan(q.y,q.x);
   float radial=length(q);
-  float voiceMotion=low*0.075+mid*0.045+high*0.025;
-  float lobes=sin(angle*(5.0+complexity*9.0)+n*5.0+t*1.35+low*2.5)* (0.035+voiceMotion)*complexity;
-  float ripple=sin(angle*11.0-t*2.1+high*5.0)*high*0.018;
-  float pulse=0.018+level*0.045+low*0.065;
-  float bodyRadius=0.255+drift+lobes+ripple+pulse+(n-0.5)*0.12*complexity;
+  float voiceMotion=low*0.045+mid*0.055+high*0.045+motion*0.11+flux*0.10;
+  float gesture=sin(t*5.2+angle*3.0+mid*8.0)*motion*0.035;
+  float flutter=sin(t*13.0+angle*17.0+high*9.0)*flux*0.012;
+  float lobes=sin(angle*(5.0+complexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)* (0.018+voiceMotion)*complexity;
+  float ripple=sin(angle*11.0-t*2.1+high*8.0+flux*5.0)*(high*0.012+flux*0.025);
+  float pulse=0.012+level*0.018+low*0.035+gesture;
+  float bodyRadius=0.255+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.12*complexity;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
   float vein=sin((q.x*13.0+fbm(q*8.0+t)*2.0)*3.0+q.y*9.0+mid*5.0)*0.5+0.5;
   float detail=smoothstep(0.58,0.9,vein)*inner*0.45;
   // Автоматический цветовой цикл; голос ускоряет и смещает переливы.
-  float colorPhase=t*0.42+low*1.8+mid*1.1+high*0.7;
+  float colorPhase=t*0.62+low*2.8+mid*2.1+high*1.6+motion*2.4+flux*3.0;
   float colorWave=0.5+0.5*sin(colorPhase+n*2.2);
-  float colorAccent=0.5+0.5*sin(colorPhase*0.73+2.1+high*3.0);
+  float colorAccent=0.5+0.5*sin(colorPhase*0.73+2.1+high*3.0+motion*4.0);
+  vec3 spectral=0.5+0.5*cos(colorPhase+vec3(0.0,2.1,4.2));
   vec3 body=mix(colorA,colorB,clamp(colorWave*0.82+n*0.18,0.0,1.0));
-  body=mix(body,colorC,detail*(0.55+colorAccent*0.8));
+  body=mix(body,colorC,detail*(0.45+colorAccent*0.8));
+  body=mix(body,body*(0.55+spectral*0.9)+spectral*0.12,0.28+motion*0.32+flux*0.22);
   body*=0.72+0.28*fbm(q*18.0+t);
   float glow=exp(-abs(organic)*28.0)*(0.65+high*0.55+mid*0.2);
   vec3 col=body*edge+colorB*glow*edge;
@@ -119,7 +125,7 @@ export class Creature {
     const loc = gl.getAttribLocation(this.program, 'position');
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    for (const name of ['resolution','time','level','low','mid','high','symmetry','complexity','eyes','colorA','colorB','colorC']) {
+    for (const name of ['resolution','time','level','low','mid','high','motion','flux','symmetry','complexity','eyes','colorA','colorB','colorC']) {
       this.uniforms[name] = gl.getUniformLocation(this.program, name);
     }
   }
@@ -162,6 +168,8 @@ export class Creature {
     gl.uniform1f(u.low,audio.low);
     gl.uniform1f(u.mid,audio.mid);
     gl.uniform1f(u.high,audio.high);
+    gl.uniform1f(u.motion,audio.motion);
+    gl.uniform1f(u.flux,audio.flux);
     gl.uniform1f(u.symmetry,this.params.symmetry);
     gl.uniform1f(u.complexity,this.params.complexity);
     gl.uniform1f(u.eyes,this.params.eyes);
