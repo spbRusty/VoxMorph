@@ -24,8 +24,6 @@ app.innerHTML = `
         <input id="symmetry" type="range" min="0" max="100" value="100">
         <div class="control-row"><label for="complexity">Сложность формы</label><output id="complexity-value">62%</output></div>
         <input id="complexity" type="range" min="10" max="100" value="62">
-        <div class="control-row"><label for="eyes">Количество глаз</label><output id="eyes-value">2</output></div>
-        <input id="eyes" type="range" min="0" max="6" value="2" step="1">
         <div class="control-row"><label for="sensitivity">Чувствительность</label><output id="sensitivity-value">65%</output></div>
         <input id="sensitivity" type="range" min="10" max="100" value="65">
         <div class="divider"></div>
@@ -111,14 +109,14 @@ $('start').addEventListener('click', async () => {
   }
 });
 
-const ranges = ['symmetry', 'complexity', 'eyes', 'sensitivity'] as const;
+const ranges = ['symmetry', 'complexity', 'sensitivity'] as const;
 for (const id of ranges) {
   const input = $(id) as HTMLInputElement;
   input.addEventListener('input', () => {
     const value = Number(input.value);
-    $(`${id}-value`).textContent = id === 'eyes' ? String(value) : `${value}%`;
+    $(`${id}-value`).textContent = `${value}%`;
     if (id === 'sensitivity') sensitivity = value / 100;
-    creature.setParameter(id, id === 'eyes' ? value : value / 100);
+    creature.setParameter(id, value / 100);
   });
 }
 
