@@ -114,7 +114,7 @@ export class Microphone {
     const flatness=arithmetic>0?Math.min(1,Math.exp(logSum/bins)/(arithmetic/bins)):0;
 
     // Автокорреляция короткого прореженного фрагмента: высота тона и периодичность голоса.
-    const stride=4, sampleCount=480, minLag=10, maxLag=100;
+    const stride=4, sampleCount=480, minLag=10, maxLag=180;
     let bestCorrelation=0, bestLag=0;
     const sampleAt=(index:number)=>(this.waveform[index*stride]-128)/128;
     for(let lag=minLag;lag<=maxLag;lag++) {
