@@ -118,7 +118,7 @@ for (const id of ranges) {
     const value = Number(input.value);
     $(`${id}-value`).textContent = id === 'eyes' ? String(value) : `${value}%`;
     if (id === 'sensitivity') sensitivity = value / 100;
-    creature.setParameter(id, value / 100);
+    creature.setParameter(id, id === 'eyes' ? value : value / 100);
   });
 }
 
