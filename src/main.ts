@@ -19,14 +19,8 @@ app.innerHTML = `
         <select id="device"><option value="">Системный микрофон</option></select>
         <button class="primary-button" id="start"><span class="button-dot"></span> ЗАПУСТИТЬ МИКРОФОН</button>
         <div class="divider"></div>
-        <div class="section-kicker">02 / МОРФОЛОГИЯ</div>
-        <div class="control-row"><label for="symmetry">Симметрия</label><output id="symmetry-value">100%</output></div>
-        <input id="symmetry" type="range" min="0" max="100" value="100">
-        <div class="control-row"><label for="complexity">Сложность формы</label><output id="complexity-value">62%</output></div>
-        <input id="complexity" type="range" min="10" max="100" value="62">
-        <div class="control-row"><label for="sensitivity">Чувствительность</label><output id="sensitivity-value">65%</output></div>
-        <input id="sensitivity" type="range" min="10" max="100" value="65">
-        <div class="divider"></div>
+        <div class="section-kicker">02 / АВТОНОМНАЯ МОРФОЛОГИЯ</div>
+        <p class="intro morphology-note">Симметрия, сложность и пластика меняются самостоятельно под воздействием голоса.</p>
         <div class="section-kicker">03 / ПАЛИТРА</div>
         <div class="swatches">
           <button class="swatch active" data-palette="violet" aria-label="Фиолетовая"></button>
@@ -45,10 +39,22 @@ app.innerHTML = `
           <div class="stage-coordinates">WEBGL 2.0 <span>•</span> REALTIME AUDIO</div>
         </div>
         <div class="meters">
-          <div class="meter"><span>LOW / БАС</span><div><i id="low-meter"></i></div></div>
-          <div class="meter"><span>MID / ГОЛОС</span><div><i id="mid-meter"></i></div></div>
-          <div class="meter"><span>HIGH / ВОЗДУХ</span><div><i id="high-meter"></i></div></div>
           <div class="meter"><span>LEVEL</span><div><i id="level-meter"></i></div></div>
+          <div class="meter"><span>BASS</span><div><i id="low-meter"></i></div></div>
+          <div class="meter"><span>VOICE</span><div><i id="mid-meter"></i></div></div>
+          <div class="meter"><span>AIR</span><div><i id="high-meter"></i></div></div>
+          <div class="meter"><span>PITCH</span><div><i id="pitch-meter"></i></div></div>
+          <div class="meter"><span>BREATH</span><div><i id="breath-meter"></i></div></div>
+          <div class="meter"><span>VOICING</span><div><i id="voicing-meter"></i></div></div>
+          <div class="meter"><span>BRIGHT</span><div><i id="brightness-meter"></i></div></div>
+          <div class="meter"><span>ROUGH</span><div><i id="roughness-meter"></i></div></div>
+          <div class="meter"><span>RHYTHM</span><div><i id="rhythm-meter"></i></div></div>
+          <div class="meter"><span>ONSET</span><div><i id="onset-meter"></i></div></div>
+          <div class="meter"><span>HARMONICS</span><div><i id="harmonics-meter"></i></div></div>
+          <div class="meter"><span>FLATNESS</span><div><i id="flatness-meter"></i></div></div>
+          <div class="meter"><span>ZCR</span><div><i id="zeroCrossing-meter"></i></div></div>
+          <div class="meter"><span>MOTION</span><div><i id="motion-meter"></i></div></div>
+          <div class="meter"><span>FLUX</span><div><i id="flux-meter"></i></div></div>
         </div>
       </section>
     </section>
@@ -59,7 +65,6 @@ const canvas = document.querySelector<HTMLCanvasElement>('#creature')!;
 const creature = new Creature(canvas);
 const mic = new Microphone();
 let running = false;
-let sensitivity = 0.65;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 function resize() {
@@ -72,9 +77,18 @@ function resize() {
 new ResizeObserver(resize).observe(canvas);
 resize();
 
-function updateMeters(level: number, low: number, mid: number, high: number) {
-  for (const [id, value] of [['level-meter', level], ['low-meter', low], ['mid-meter', mid], ['high-meter', high]] as const) {
-    $(id).style.width = `${Math.min(100, value * 100)}%`;
+function updateMeters(audio: ReturnType<Microphone['read']>) {
+  const values:Record<string,number>={
+    level:audio.level, low:audio.low, mid:audio.mid, high:audio.high,
+    pitch:audio.pitch, breath:audio.breath, voicing:audio.voicing,
+    brightness:audio.brightness, roughness:audio.roughness,
+    rhythm:audio.rhythm, onset:audio.onset, harmonics:audio.harmonics,
+    flatness:audio.flatness, zeroCrossing:audio.zeroCrossing,
+    motion:audio.motion, flux:audio.flux,
+  };
+  for(const [name,value] of Object.entries(values)) {
+    const meter=document.getElementById(`${name}-meter`);
+    if(meter) meter.style.width=`${Math.min(100,value*100)}%`;
   }
 }
 
@@ -109,16 +123,6 @@ $('start').addEventListener('click', async () => {
   }
 });
 
-const ranges = ['symmetry', 'complexity', 'sensitivity'] as const;
-for (const id of ranges) {
-  const input = $(id) as HTMLInputElement;
-  input.addEventListener('input', () => {
-    const value = Number(input.value);
-    $(`${id}-value`).textContent = `${value}%`;
-    if (id === 'sensitivity') sensitivity = value / 100;
-    creature.setParameter(id, value / 100);
-  });
-}
 
 document.querySelectorAll<HTMLButtonElement>('.swatch').forEach(button => {
   button.addEventListener('click', () => {
@@ -140,9 +144,9 @@ $('fullscreen').addEventListener('click', () => {
 
 function frame() {
   const audio = mic.read();
-  const scaled = Math.min(1, audio.level * (0.7 + sensitivity * 2.2));
-  creature.render({ ...audio, level: scaled });
-  updateMeters(scaled, audio.low, audio.mid, audio.high);
+  const scaledAudio = { ...audio, level:Math.min(1,audio.level*2.1) };
+  creature.render(scaledAudio);
+  updateMeters(scaledAudio);
   requestAnimationFrame(frame);
 }
 frame();
