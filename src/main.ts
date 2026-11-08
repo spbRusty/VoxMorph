@@ -144,7 +144,7 @@ $('fullscreen').addEventListener('click', () => {
 
 function frame() {
   const audio = mic.read();
-  const scaledAudio = { ...audio, level:Math.min(1,audio.level*2.1) };
+  const scaledAudio = audio;
   creature.render(scaledAudio);
   updateMeters(scaledAudio);
   requestAnimationFrame(frame);
