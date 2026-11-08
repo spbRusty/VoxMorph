@@ -77,18 +77,21 @@ void main() {
   vec3 col=body*edge+colorB*glow*edge;
   col+=colorA*detail*edge;
 
-  // Всегда ровно два глаза. Их радужка плавно меняет оттенок и яркость.
+  // Всегда два отдельных глаза по обе стороны центра; радужки переливаются независимо от громкости.
   float eyeX=0.052+sin(t*1.7+mid*2.0)*0.008+high*0.006;
-  vec2 eyePos=vec2(eyeX,0.035+sin(t*1.25+mid*2.0)*0.012);
-  float e=ellipse(q,eyePos,vec2(0.027+mid*0.010,0.043+level*0.008+low*0.006));
-  float eye=1.0-smoothstep(0.82,1.0,e);
-  float pupil=1.0-smoothstep(0.24,0.36,ellipse(q,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
-  vec3 iris=0.5+0.5*cos(colorPhase*1.35+vec3(0.0,2.1,4.2)+vec3(high*3.0,mid*2.0,low*2.5));
-  vec3 eyeBase=mix(vec3(0.025,0.018,0.04),iris,0.78);
-  col=mix(col,eyeBase,eye*edge);
-  col=mix(col,vec3(0.96,0.96,1.0),pupil*eye*edge);
-  float eyeSpark=1.0-smoothstep(0.0,0.012,length(q-(eyePos+vec2(-0.008,0.012))));
-  col+=iris*eyeSpark*eye*edge*0.65;
+  for(int sideIndex=0; sideIndex<2; sideIndex++) {
+    float side=sideIndex==0 ? -1.0 : 1.0;
+    vec2 eyePos=vec2(side*eyeX,0.035+sin(t*1.25+mid*2.0+sideIndex)*0.012);
+    float e=ellipse(p,eyePos,vec2(0.027+mid*0.010,0.043+level*0.008+low*0.006));
+    float eye=1.0-smoothstep(0.82,1.0,e);
+    float pupil=1.0-smoothstep(0.24,0.36,ellipse(p,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
+    vec3 iris=0.5+0.5*cos(colorPhase*1.35+vec3(0.0,2.1,4.2)+vec3(high*3.0,mid*2.0,low*2.5)+sideIndex*1.3);
+    vec3 eyeBase=mix(vec3(0.025,0.018,0.04),iris,0.78);
+    col=mix(col,eyeBase,eye*edge);
+    col=mix(col,vec3(0.96,0.96,1.0),pupil*eye*edge);
+    float eyeSpark=1.0-smoothstep(0.0,0.012,length(p-(eyePos+vec2(-0.008,0.012))));
+    col+=iris*eyeSpark*eye*edge*0.65;
+  }
   float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*2.0)*0.004),vec2(0.018+mid*0.045+level*0.025,0.006+mid*0.018+level*0.012)));
   col=mix(col,vec3(0.035,0.012,0.035),mouth*edge*0.9);
 
