@@ -65,7 +65,7 @@ void main() {
   for(int i=0;i<6;i++) {
     float fi=float(i);
     if(fi < eyes) {
-      float x=(fi-2.5)*0.075;
+      float x=0.035+fi*0.035;
       if(symmetry>0.5 && mod(fi,2.0)==1.0) continue;
       vec2 eyePos=vec2(x,0.035+sin(t+fi)*0.008);
       float e=ellipse(q,eyePos,vec2(0.027+mid*0.009,0.043+level*0.012));
@@ -97,7 +97,7 @@ export class Creature {
   private program: WebGLProgram;
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
   private start = performance.now();
-  private params = { symmetry:1, complexity:0.62, eyes:2/6 };
+  private params = { symmetry:1, complexity:0.62, eyes:2 };
   private palette = palettes.violet;
 
   constructor(private canvas: HTMLCanvasElement) {
