@@ -1,11 +1,11 @@
 export interface AudioFrame {
   level: number; low: number; mid: number; high: number; motion: number; flux: number;
   pitch: number; breath: number; voicing: number; brightness: number; roughness: number;
-  rhythm: number; onset: number; harmonics: number; flatness: number; zeroCrossing: number;
+  rhythm: number; onset: number; harmonics: number; flatness: number; zeroCrossing: number; softness: number;
 }
 const zeroFrame = (): AudioFrame => ({
   level:0, low:0, mid:0, high:0, motion:0, flux:0, pitch:0, breath:0, voicing:0,
-  brightness:0, roughness:0, rhythm:0, onset:0, harmonics:0, flatness:0, zeroCrossing:0,
+  brightness:0, roughness:0, rhythm:0, onset:0, harmonics:0, flatness:0, zeroCrossing:0, softness:0,
 });
 export class Microphone {
   private context?: AudioContext;
@@ -83,6 +83,8 @@ export class Microphone {
       this.inputGain+=(desiredGain-this.inputGain)*0.0025;
     }
     const level=Math.min(1,Math.pow(voice*this.inputGain,0.88));
+    // Тихая, но различимая речь: отделяем шёпот от полной тишины по сырой амплитуде.
+    const softnessTarget = voice > 0.0035 ? 1 - Math.max(0, Math.min(1, (voice - 0.006) / 0.038)) : 0;
     const low=Math.min(1,band(1,12)*3.8);
     const mid=Math.min(1,band(12,90)*4.2);
     const high=Math.min(1,band(90,340)*4.5);
@@ -130,7 +132,7 @@ export class Microphone {
     this.rhythmPulse*=0.965;
     const onset=onsetDetected?Math.min(0.75,spectralFlux*1.9):0;
     const rhythm=Math.min(1,this.rhythmPulse*(0.55+Math.min(0.45,mid*0.5)));
-    const targets:AudioFrame={...target,motion:motionTarget,flux:spectralFlux,pitch,breath,voicing,brightness,roughness,rhythm,onset,harmonics,flatness,zeroCrossing};
+    const targets:AudioFrame={...target,motion:motionTarget,flux:spectralFlux,pitch,breath,voicing,brightness,roughness,rhythm,onset,harmonics,flatness,zeroCrossing,softness:softnessTarget};
     const smooth=(key:keyof AudioFrame,attack=0.4,release=0.14) => {
       const next=targets[key], current=this.smooth[key];
       return current+(next-current)*(next>current?attack:release);
@@ -144,6 +146,7 @@ export class Microphone {
       roughness:smooth('roughness',0.25,0.07), rhythm:smooth('rhythm',0.3,0.07),
       onset:smooth('onset',0.38,0.06), harmonics:smooth('harmonics',0.24,0.07),
       flatness:smooth('flatness',0.22,0.06), zeroCrossing:smooth('zeroCrossing',0.22,0.06),
+      softness:smooth('softness',0.12,0.055),
     };
     return this.smooth;
   }
