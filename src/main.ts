@@ -40,6 +40,7 @@ app.innerHTML = `
         <div class="stage-head"><span>СУЩЕСТВО / <b id="seed">VX-001</b></span><span class="live-label"><i></i> LIVE RENDER</span></div>
         <div class="stage" id="stage">
           <canvas id="creature"></canvas>
+          <div id="drag-handle" aria-hidden="true"></div>
           <div class="stage-hint" id="hint">НАЖМИ «ЗАПУСТИТЬ МИКРОФОН»<br><small>ИЛИ ГОВОРИ, ЧТОБЫ ОНО ПРОСНУЛОСЬ</small></div>
           <div class="stage-coordinates">WEBGL 2.0 <span>•</span> REALTIME AUDIO</div>
         </div>
@@ -158,25 +159,7 @@ $('obs-mode').addEventListener('click', async () => {
 $('minimize').addEventListener('click', () => window.voxmorph?.minimize());
 $('close').addEventListener('click', () => window.voxmorph?.close());
 
-let draggingAvatar = false;
-canvas.addEventListener('pointerdown', (event) => {
-  if (!document.documentElement.classList.contains('obs-mode') || event.button !== 0) return;
-  draggingAvatar = true;
-  canvas.setPointerCapture(event.pointerId);
-  window.voxmorph?.beginWindowDrag(event.screenX, event.screenY);
-  canvas.style.cursor = 'grabbing';
-});
-window.addEventListener('pointermove', (event) => {
-  if (draggingAvatar) window.voxmorph?.moveWindowDrag(event.screenX, event.screenY);
-});
-const stopDraggingAvatar = () => {
-  if (draggingAvatar) window.voxmorph?.endWindowDrag();
-  draggingAvatar = false;
-  canvas.style.cursor = '';
-};
-window.addEventListener('pointerup', stopDraggingAvatar);
-window.addEventListener('pointercancel', stopDraggingAvatar);
-canvas.addEventListener('lostpointercapture', stopDraggingAvatar);
+
 
 window.voxmorph?.onObsModeChanged((enabled) => {
   document.documentElement.classList.toggle('obs-mode', enabled);
