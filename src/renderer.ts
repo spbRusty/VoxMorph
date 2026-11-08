@@ -55,10 +55,17 @@ void main() {
   float voiceMotion=low*0.045+mid*0.055+high*0.045+motion*0.11+flux*0.10;
   float gesture=sin(t*5.2+angle*3.0+mid*8.0)*motion*0.035;
   float flutter=sin(t*13.0+angle*17.0+high*9.0)*flux*0.012;
-  float lobes=sin(angle*(5.0+dynamicComplexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)* (0.018+voiceMotion)*dynamicComplexity;
+  // Несколько семейств силуэтов плавно сменяют друг друга: округлые, волнистые и вытянутые.
+  float morphA=0.5+0.5*sin(time*0.105+sin(time*0.037)*1.7);
+  float morphB=0.5+0.5*sin(time*0.081+2.2+sin(time*0.029)*1.3);
+  float silhouetteRound=sin(angle*2.0+t*0.42+n*2.0)*0.035+sin(angle*3.0-t*0.31)*0.022;
+  float silhouetteWave=sin(angle*(6.0+dynamicComplexity*3.0)+t*0.7+n*4.0)*0.031+sin(angle*11.0-t*0.5)*0.014;
+  float silhouetteFlow=cos(angle*2.0-t*0.35)*0.045+sin(angle*4.0+t*0.28+n*3.0)*0.025;
+  float silhouette=mix(mix(silhouetteRound,silhouetteWave,morphA),silhouetteFlow,morphB*0.72);
+  float lobes=sin(angle*(5.0+dynamicComplexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)*(0.012+voiceMotion*0.55)*dynamicComplexity;
   float ripple=sin(angle*11.0-t*2.1+high*8.0+flux*5.0)*(high*0.012+flux*0.025);
   float pulse=0.012+level*0.018+low*0.035+gesture;
-  float bodyRadius=0.255+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.12*dynamicComplexity;
+  float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.095*dynamicComplexity;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
@@ -79,10 +86,16 @@ void main() {
 
   // Всегда два отдельных глаза по обе стороны центра; радужки переливаются независимо от громкости.
   float eyeX=0.052+sin(t*1.7+mid*2.0)*0.008+high*0.006;
+  // Нерегулярное моргание примерно раз в несколько секунд, иногда с коротным повтором.
+  float blinkPhase=fract(time*0.115+sin(time*0.31)*0.025);
+  float blink=1.0-smoothstep(0.012,0.045,abs(blinkPhase-0.105));
+  float doubleBlink=1.0-smoothstep(0.009,0.028,abs(blinkPhase-0.145));
+  blink=max(blink,doubleBlink*(0.35+0.65*step(0.35,sin(floor(time*0.115)*12.7))));
   for(int sideIndex=0; sideIndex<2; sideIndex++) {
     float side=sideIndex==0 ? -1.0 : 1.0;
     vec2 eyePos=vec2(side*eyeX,0.035+sin(t*1.25+mid*2.0+float(sideIndex))*0.012);
-    float e=ellipse(p,eyePos,vec2(0.027+mid*0.010,0.043+level*0.008+low*0.006));
+    float eyeHeight=mix(0.043+level*0.008+low*0.006,0.0045,blink);
+    float e=ellipse(p,eyePos,vec2(0.027+mid*0.010,eyeHeight));
     float eye=1.0-smoothstep(0.82,1.0,e);
     float pupil=1.0-smoothstep(0.24,0.36,ellipse(p,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
     vec3 iris=0.5+0.5*cos(colorPhase*1.35+vec3(0.0,2.1,4.2)+vec3(high*3.0,mid*2.0,low*2.5)+float(sideIndex)*1.3);
@@ -90,7 +103,7 @@ void main() {
     col=mix(col,eyeBase,eye*edge);
     col=mix(col,vec3(0.96,0.96,1.0),pupil*eye*edge);
     float eyeSpark=1.0-smoothstep(0.0,0.012,length(p-(eyePos+vec2(-0.008,0.012))));
-    col+=iris*eyeSpark*eye*edge*0.65;
+    col+=iris*eyeSpark*eye*edge*(1.0-blink)*0.65;
   }
   float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*2.0)*0.004),vec2(0.018+mid*0.045+level*0.025,0.006+mid*0.018+level*0.012)));
   col=mix(col,vec3(0.035,0.012,0.035),mouth*edge*0.9);
