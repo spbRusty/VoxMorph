@@ -41,3 +41,16 @@ body.obs-mode #drag-handle{
   -webkit-app-region:drag;
   cursor:grab;
 }
+
+
+/* OBS mode: draggable center and a separate resize grip in the lower-right corner. */
+#resize-handle{display:none}
+body.obs-mode #resize-handle{
+  display:block;position:fixed;z-index:10;right:5px;bottom:5px;
+  width:28px;height:28px;cursor:nwse-resize;touch-action:none;
+  border-radius:0 0 8px 0;
+  background:linear-gradient(135deg,transparent 0 43%,#d8caffaa 44% 49%,transparent 50% 59%,#d8caffdd 60% 66%,transparent 67%);
+}
+body.obs-mode #resize-handle:hover{
+  background:linear-gradient(135deg,transparent 0 35%,#e8ddff 36% 43%,transparent 44% 53%,#e8ddff 54% 62%,transparent 63%);
+}
