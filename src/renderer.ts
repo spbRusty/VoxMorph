@@ -174,10 +174,6 @@ export class Creature {
   }
 
   resize(width:number,height:number) { this.gl.viewport(0,0,width,height); }
-  setParameter(name:'symmetry'|'complexity'|'sensitivity',value:number) {
-    if(name==='symmetry') this.params.symmetry=value;
-    if(name==='complexity') this.params.complexity=value;
-  }
   setPalette(name:string) { this.palette=palettes[name] || palettes.violet; }
   randomize() {
     this.params.symmetry=Math.random()>0.25?1:Math.random()*0.6;
