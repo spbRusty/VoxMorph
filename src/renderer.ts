@@ -62,11 +62,11 @@ void main() {
   col+=colorA*detail*edge;
 
   // Глаза — парные тёмные овалы, слегка реагирующие на голос.
-  for(int i=0;i<3;i++) {
+  for(int i=0;i<6;i++) {
     float fi=float(i);
     if(fi < eyes) {
-      float x=(fi-1.0)*0.105;
-      if(symmetry>0.5 && i==1) continue;
+      float x=(fi-2.5)*0.075;
+      if(symmetry>0.5 && mod(fi,2.0)==1.0) continue;
       vec2 eyePos=vec2(x,0.035+sin(t+fi)*0.008);
       float e=ellipse(q,eyePos,vec2(0.027+mid*0.009,0.043+level*0.012));
       float eye=1.0-smoothstep(0.82,1.0,e);
