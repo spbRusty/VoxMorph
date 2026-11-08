@@ -1,12 +1,7 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, session } = require('electron');
 const path = require('node:path');
 
-// On Linux, npm may unpack chrome-sandbox without the SUID bit.
-// This app loads only its bundled local UI, so use Chromium's no-sandbox mode
-// rather than requiring users to change system ownership/permissions.
-if (process.platform === 'linux') {
-  app.commandLine.appendSwitch('no-sandbox');
-}
+if (process.platform === 'linux') app.commandLine.appendSwitch('no-sandbox');
 
 let win;
 let obsMode = false;
@@ -20,7 +15,8 @@ function setObsMode(enabled) {
     win.setSize(720, 720);
     win.center();
     win.setAlwaysOnTop(true, 'screen-saver');
-    win.setIgnoreMouseEvents(true, { forward: true });
+    // Keep mouse input enabled so the transparent avatar can be dragged.
+    win.setIgnoreMouseEvents(false);
   } else {
     win.setIgnoreMouseEvents(false);
     win.setAlwaysOnTop(false);
@@ -35,46 +31,35 @@ function setObsMode(enabled) {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1180,
-    height: 820,
-    minWidth: 760,
-    minHeight: 560,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    hasShadow: false,
-    autoHideMenuBar: true,
+    width: 1180, height: 820, minWidth: 760, minHeight: 560,
+    frame: false, transparent: true, backgroundColor: '#00000000',
+    hasShadow: false, autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
+      contextIsolation: true, nodeIntegration: false, sandbox: true,
     },
   });
-
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
-  }
+  if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
+  else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   win.on('closed', () => { win = null; obsMode = false; });
 }
 
 app.whenReady().then(() => {
-  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    callback(permission === 'media');
-  });
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => callback(permission === 'media'));
   session.defaultSession.setPermissionCheckHandler((_webContents, permission) => permission === 'media');
-
   ipcMain.handle('voxmorph:toggle-obs', () => setObsMode(!obsMode));
+  ipcMain.on('voxmorph:move-window', (_event, dx, dy) => {
+    if (!obsMode || !win || win.isDestroyed()) return;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    const [x, y] = win.getPosition();
+    win.setPosition(Math.round(x + Math.max(-100, Math.min(100, dx))), Math.round(y + Math.max(-100, Math.min(100, dy))));
+  });
   ipcMain.on('voxmorph:minimize', () => win?.minimize());
   ipcMain.on('voxmorph:close', () => win?.close());
-
   createWindow();
   globalShortcut.register('CommandOrControl+Shift+O', () => setObsMode(!obsMode));
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
-
 app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
