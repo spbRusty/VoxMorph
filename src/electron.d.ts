@@ -4,7 +4,7 @@ declare global {
   interface Window {
     voxmorph?: {
       toggleObsMode(): Promise<boolean>;
-      resizeWindowBy(dx: number, dy: number): void;
+      resizeWindowTo(width: number, height: number): void;
       minimize(): void;
       close(): void;
       onObsModeChanged(callback: (enabled: boolean) => void): void;
