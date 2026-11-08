@@ -95,6 +95,7 @@ function updateMeters(audio: ReturnType<Microphone['read']>) {
 async function refreshDevices() {
   const select = $('device') as HTMLSelectElement;
   try {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
     const devices = await navigator.mediaDevices.enumerateDevices();
     const inputs = devices.filter(d => d.kind === 'audioinput');
     select.innerHTML = inputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `Микрофон ${i + 1}`}</option>`).join('');
@@ -111,6 +112,9 @@ $('start').addEventListener('click', async () => {
     return;
   }
   try {
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      throw new Error('Браузер блокирует микрофон в небезопасном контексте. Открой VoxMorph через HTTPS или http://localhost. При доступе с другого устройства по локальному IP нужен HTTPS.');
+    }
     await mic.start(($('device') as HTMLSelectElement).value || undefined);
     running = true;
     button.textContent = '■ ОСТАНОВИТЬ МИКРОФОН';
