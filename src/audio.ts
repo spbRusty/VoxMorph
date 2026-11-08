@@ -35,16 +35,16 @@ export class Microphone {
   private previousFrequency = new Uint8Array(1024);
   private noiseFloor = 0.008;
   private calibratedAt = 0;
-  private inputGain = 7.5;
-  private speechEnvelope = 0.035;
+  private inputGain = 5.5;
+  private speechEnvelope = 0.05;
   private rhythmPulse = 0;
   private lastOnsetAt = 0;
 
   async start(deviceId?: string): Promise<void> {
     this.stop();
     this.noiseFloor = 0.008;
-    this.inputGain = 7.5;
-    this.speechEnvelope = 0.035;
+    this.inputGain = 5.5;
+    this.speechEnvelope = 0.05;
     this.calibratedAt = performance.now();
     this.previousBands = { level:0, low:0, mid:0, high:0 };
     this.previousFrequency.fill(0);
@@ -97,16 +97,16 @@ export class Microphone {
       this.noiseFloor+=(rms-this.noiseFloor)*rate;
     }
     const voice=Math.max(0,rms-this.noiseFloor*1.55);
-    if(voice>0.012) {
-      this.speechEnvelope+=(voice-this.speechEnvelope)*0.018;
-      const desiredGain=Math.max(4.5,Math.min(22,0.085/Math.max(0.012,this.speechEnvelope)));
-      this.inputGain+=(desiredGain-this.inputGain)*0.003;
+    if(voice>0.018) {
+      this.speechEnvelope+=(voice-this.speechEnvelope)*0.012;
+      const desiredGain=Math.max(4.0,Math.min(8.0,0.06/Math.max(0.025,this.speechEnvelope)));
+      this.inputGain+=(desiredGain-this.inputGain)*0.0015;
     }
-    const level=Math.min(1,Math.pow(voice*this.inputGain,0.82));
+    const level=Math.min(1,Math.pow(voice*this.inputGain,0.92));
 
-    const low=Math.min(1,band(1,12)*5.0);
-    const mid=Math.min(1,band(12,90)*5.8);
-    const high=Math.min(1,band(90,340)*7.0);
+    const low=Math.min(1,band(1,12)*3.4);
+    const mid=Math.min(1,band(12,90)*3.8);
+    const high=Math.min(1,band(90,340)*4.2);
 
     let spectralFlux=0, weighted=0, magnitude=0, logSum=0, arithmetic=0, bins=0;
     for(let i=2;i<Math.min(340,this.frequency.length);i++) {
