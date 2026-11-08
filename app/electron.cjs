@@ -10,8 +10,8 @@ function setObsMode(enabled) {
   if (!win || win.isDestroyed()) return false;
   obsMode = enabled;
   if (enabled) {
-    win.setResizable(false);
-    win.setMinimumSize(320, 320);
+    win.setResizable(true);
+    win.setMinimumSize(240, 240);
     win.setSize(720, 720);
     win.center();
     win.setAlwaysOnTop(true, 'screen-saver');
@@ -49,12 +49,11 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => callback(permission === 'media'));
   session.defaultSession.setPermissionCheckHandler((_webContents, permission) => permission === 'media');
   ipcMain.handle('voxmorph:toggle-obs', () => setObsMode(!obsMode));
-  ipcMain.on('voxmorph:resize-window-by', (_event, dx, dy) => {
+  ipcMain.on('voxmorph:resize-window-to', (_event, width, height) => {
     if (!obsMode || !win || win.isDestroyed()) return;
-    const [width, height] = win.getSize();
-    const nextWidth = Math.max(320, Math.min(1200, width + Math.round(Number(dx) || 0)));
-    const nextHeight = Math.max(320, Math.min(1200, height + Math.round(Number(dy) || 0)));
-    if (nextWidth !== width || nextHeight !== height) win.setSize(nextWidth, nextHeight);
+    const nextWidth = Math.max(240, Math.min(1200, Math.round(Number(width) || 720)));
+    const nextHeight = Math.max(240, Math.min(1200, Math.round(Number(height) || 720)));
+    win.setBounds({ x: win.getBounds().x, y: win.getBounds().y, width: nextWidth, height: nextHeight });
   });
   ipcMain.on('voxmorph:minimize', () => win?.minimize());
   ipcMain.on('voxmorph:close', () => win?.close());
