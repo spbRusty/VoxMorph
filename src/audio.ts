@@ -215,7 +215,7 @@ export class Microphone {
     this.previousFrequency.fill(0);
     this.rhythmPulse=0;
     this.lastOnsetAt=0;
-    this.inputGain=7.5;
-    this.speechEnvelope=0.035;
+    this.inputGain=5.5;
+    this.speechEnvelope=0.05;
   }
 }
