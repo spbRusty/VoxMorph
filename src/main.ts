@@ -158,6 +158,7 @@ $('obs-mode').addEventListener('click', async () => {
 $('minimize').addEventListener('click', () => window.voxmorph?.minimize());
 $('close').addEventListener('click', () => window.voxmorph?.close());
 window.voxmorph?.onObsModeChanged((enabled) => {
+  document.documentElement.classList.toggle('obs-mode', enabled);
   document.body.classList.toggle('obs-mode', enabled);
   $('obs-mode').textContent = enabled ? 'ВЫЙТИ ИЗ OBS (Ctrl+Shift+O)' : 'РЕЖИМ OBS';
 });
