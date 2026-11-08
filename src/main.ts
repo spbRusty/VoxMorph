@@ -91,7 +91,7 @@ function updateMeters(audio: ReturnType<Microphone['read']>) {
     brightness:audio.brightness, roughness:audio.roughness,
     rhythm:audio.rhythm, onset:audio.onset, harmonics:audio.harmonics,
     flatness:audio.flatness, zeroCrossing:audio.zeroCrossing,
-    motion:audio.motion, flux:audio.flux,
+    motion:audio.motion, flux:audio.flux, softness:audio.softness,
   };
   for(const [name,value] of Object.entries(values)) {
     const meter=document.getElementById(`${name}-meter`);
@@ -164,8 +164,10 @@ $('close').addEventListener('click', () => window.voxmorph?.close());
 
 const resizeHandle = $('resize-handle');
 let resizing = false;
-let lastPointerX = 0;
-let lastPointerY = 0;
+let resizeStartX = 0;
+let resizeStartY = 0;
+let resizeStartWidth = 720;
+let resizeStartHeight = 720;
 
 resizeHandle.addEventListener('pointerdown', (event) => {
   if (!document.body.classList.contains('obs-mode')) return;
@@ -173,18 +175,21 @@ resizeHandle.addEventListener('pointerdown', (event) => {
   event.stopPropagation();
   resizing = true;
   document.body.classList.add('resizing-avatar');
-  lastPointerX = event.screenX;
-  lastPointerY = event.screenY;
+  resizeStartX = event.screenX;
+  resizeStartY = event.screenY;
+  resizeStartWidth = window.innerWidth;
+  resizeStartHeight = window.innerHeight;
   resizeHandle.setPointerCapture(event.pointerId);
 });
 
 resizeHandle.addEventListener('pointermove', (event) => {
   if (!resizing) return;
-  const dx = event.screenX - lastPointerX;
-  const dy = event.screenY - lastPointerY;
-  lastPointerX = event.screenX;
-  lastPointerY = event.screenY;
-  window.voxmorph?.resizeWindowBy(dx, dy);
+  const dx = event.screenX - resizeStartX;
+  const dy = event.screenY - resizeStartY;
+  // Диагональное движение одинаково меняет обе стороны; вертикаль/горизонталь тоже работают.
+  const delta = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+  const nextSize = Math.max(240, Math.min(1200, Math.round((resizeStartWidth + resizeStartHeight) / 2 + delta)));
+  window.voxmorph?.resizeWindowTo(nextSize, nextSize);
 });
 
 function stopResize(event: PointerEvent) {
