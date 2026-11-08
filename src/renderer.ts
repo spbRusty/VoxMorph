@@ -22,7 +22,6 @@ uniform float motion;
 uniform float flux;
 uniform float symmetry;
 uniform float complexity;
-uniform float eyes;
 uniform vec3 colorA;
 uniform vec3 colorB;
 uniform vec3 colorC;
@@ -42,7 +41,10 @@ float ellipse(vec2 p, vec2 center, vec2 scale) {
 }
 void main() {
   vec2 p=(uv-0.5)*vec2(resolution.x/resolution.y,1.0);
-  float mirror=mix(p.x,abs(p.x),symmetry);
+  // Параметры морфологии сами медленно дрейфуют, голос добавляет небольшие отклонения.
+  float dynamicSymmetry=clamp(symmetry + sin(time*0.19)*0.22 + sin(time*0.071+mid*2.0)*0.10 - motion*0.12,0.0,1.0);
+  float dynamicComplexity=clamp(complexity + sin(time*0.23+1.7)*0.20 + sin(time*0.093+low*3.0)*0.10 + flux*0.12,0.1,1.0);
+  float mirror=mix(p.x,abs(p.x),dynamicSymmetry);
   vec2 q=vec2(mirror,p.y);
   float t=time*0.32;
   // Самостоятельное движение сохраняется даже в тишине.
@@ -53,10 +55,10 @@ void main() {
   float voiceMotion=low*0.045+mid*0.055+high*0.045+motion*0.11+flux*0.10;
   float gesture=sin(t*5.2+angle*3.0+mid*8.0)*motion*0.035;
   float flutter=sin(t*13.0+angle*17.0+high*9.0)*flux*0.012;
-  float lobes=sin(angle*(5.0+complexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)* (0.018+voiceMotion)*complexity;
+  float lobes=sin(angle*(5.0+dynamicComplexity*9.0)+n*5.0+t*1.35+low*3.5+mid*2.0)* (0.018+voiceMotion)*dynamicComplexity;
   float ripple=sin(angle*11.0-t*2.1+high*8.0+flux*5.0)*(high*0.012+flux*0.025);
   float pulse=0.012+level*0.018+low*0.035+gesture;
-  float bodyRadius=0.255+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.12*complexity;
+  float bodyRadius=0.255+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.12*dynamicComplexity;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
@@ -75,20 +77,18 @@ void main() {
   vec3 col=body*edge+colorB*glow*edge;
   col+=colorA*detail*edge;
 
-  // Глаза — парные тёмные овалы, слегка реагирующие на голос.
-  for(int i=0;i<6;i++) {
-    float fi=float(i);
-    if(fi < eyes) {
-      float x=0.035+fi*0.035;
-      if(symmetry>0.5 && mod(fi,2.0)==1.0) continue;
-      vec2 eyePos=vec2(x+sin(t*1.7+fi)*0.006+high*0.009,0.035+sin(t*1.25+fi+mid*2.0)*0.012);
-      float e=ellipse(q,eyePos,vec2(0.027+mid*0.014,0.043+level*0.012+low*0.008));
-      float eye=1.0-smoothstep(0.82,1.0,e);
-      float pupil=1.0-smoothstep(0.24,0.36,ellipse(q,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
-      col=mix(col,vec3(0.025,0.018,0.04),eye*edge);
-      col=mix(col,vec3(0.92,0.9,1.0),pupil*eye*edge);
-    }
-  }
+  // Всегда ровно два глаза. Их радужка плавно меняет оттенок и яркость.
+  float eyeX=0.052+sin(t*1.7+mid*2.0)*0.008+high*0.006;
+  vec2 eyePos=vec2(eyeX,0.035+sin(t*1.25+mid*2.0)*0.012);
+  float e=ellipse(q,eyePos,vec2(0.027+mid*0.010,0.043+level*0.008+low*0.006));
+  float eye=1.0-smoothstep(0.82,1.0,e);
+  float pupil=1.0-smoothstep(0.24,0.36,ellipse(q,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
+  vec3 iris=0.5+0.5*cos(colorPhase*1.35+vec3(0.0,2.1,4.2)+vec3(high*3.0,mid*2.0,low*2.5));
+  vec3 eyeBase=mix(vec3(0.025,0.018,0.04),iris,0.78);
+  col=mix(col,eyeBase,eye*edge);
+  col=mix(col,vec3(0.96,0.96,1.0),pupil*eye*edge);
+  float eyeSpark=1.0-smoothstep(0.0,0.012,length(q-(eyePos+vec2(-0.008,0.012))));
+  col+=iris*eyeSpark*eye*edge*0.65;
   float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*2.0)*0.004),vec2(0.018+mid*0.045+level*0.025,0.006+mid*0.018+level*0.012)));
   col=mix(col,vec3(0.035,0.012,0.035),mouth*edge*0.9);
 
@@ -111,7 +111,7 @@ export class Creature {
   private program: WebGLProgram;
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
   private start = performance.now();
-  private params = { symmetry:1, complexity:0.62, eyes:2 };
+  private params = { symmetry:1, complexity:0.62 };
   private palette = palettes.violet;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -125,7 +125,7 @@ export class Creature {
     const loc = gl.getAttribLocation(this.program, 'position');
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    for (const name of ['resolution','time','level','low','mid','high','motion','flux','symmetry','complexity','eyes','colorA','colorB','colorC']) {
+    for (const name of ['resolution','time','level','low','mid','high','motion','flux','symmetry','complexity','colorA','colorB','colorC']) {
       this.uniforms[name] = gl.getUniformLocation(this.program, name);
     }
   }
@@ -146,16 +146,14 @@ export class Creature {
   }
 
   resize(width:number,height:number) { this.gl.viewport(0,0,width,height); }
-  setParameter(name:'symmetry'|'complexity'|'eyes'|'sensitivity',value:number) {
+  setParameter(name:'symmetry'|'complexity'|'sensitivity',value:number) {
     if(name==='symmetry') this.params.symmetry=value;
     if(name==='complexity') this.params.complexity=value;
-    if(name==='eyes') this.params.eyes=Math.round(value);
   }
   setPalette(name:string) { this.palette=palettes[name] || palettes.violet; }
   randomize() {
     this.params.symmetry=Math.random()>0.25?1:Math.random()*0.6;
     this.params.complexity=0.25+Math.random()*0.75;
-    this.params.eyes=Math.floor(Math.random()*7);
     this.palette=Object.values(palettes)[Math.floor(Math.random()*5)];
   }
 
@@ -172,7 +170,6 @@ export class Creature {
     gl.uniform1f(u.flux,audio.flux);
     gl.uniform1f(u.symmetry,this.params.symmetry);
     gl.uniform1f(u.complexity,this.params.complexity);
-    gl.uniform1f(u.eyes,this.params.eyes);
     gl.uniform3fv(u.colorA,p.a);
     gl.uniform3fv(u.colorB,p.b);
     gl.uniform3fv(u.colorC,p.c);
