@@ -157,6 +157,25 @@ $('obs-mode').addEventListener('click', async () => {
 
 $('minimize').addEventListener('click', () => window.voxmorph?.minimize());
 $('close').addEventListener('click', () => window.voxmorph?.close());
+
+let draggingAvatar = false;
+canvas.addEventListener('pointerdown', (event) => {
+  if (!document.documentElement.classList.contains('obs-mode') || event.button !== 0) return;
+  draggingAvatar = true;
+  canvas.setPointerCapture(event.pointerId);
+  canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('pointermove', (event) => {
+  if (draggingAvatar) window.voxmorph?.moveWindowBy(event.movementX, event.movementY);
+});
+const stopDraggingAvatar = () => {
+  draggingAvatar = false;
+  canvas.style.cursor = '';
+};
+canvas.addEventListener('pointerup', stopDraggingAvatar);
+canvas.addEventListener('pointercancel', stopDraggingAvatar);
+canvas.addEventListener('lostpointercapture', stopDraggingAvatar);
+
 window.voxmorph?.onObsModeChanged((enabled) => {
   document.documentElement.classList.toggle('obs-mode', enabled);
   document.body.classList.toggle('obs-mode', enabled);
