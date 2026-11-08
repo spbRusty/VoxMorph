@@ -8,7 +8,12 @@ app.innerHTML = `
     <header class="topbar">
       <a class="brand" href="#"><span class="brand-mark">V</span><span>VOXMORPH<small>PROCEDURAL AVATAR LAB</small></span></a>
       <div class="top-status"><i></i><span id="status">МИКРОФОН НЕ ПОДКЛЮЧЁН</span></div>
-      <button class="icon-button" id="fullscreen" title="Полный экран">⛶</button>
+      <div class="window-actions">
+        <button class="mode-button" id="obs-mode" title="Прозрачный режим для OBS">РЕЖИМ OBS</button>
+        <button class="icon-button" id="fullscreen" title="Полный экран">⛶</button>
+        <button class="icon-button window-control" id="minimize" title="Свернуть">−</button>
+        <button class="icon-button window-control close-control" id="close" title="Закрыть">×</button>
+      </div>
     </header>
     <section class="workspace">
       <aside class="sidebar">
@@ -144,6 +149,17 @@ $('randomize').addEventListener('click', () => {
 $('fullscreen').addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen();
   else document.exitFullscreen();
+});
+
+$('obs-mode').addEventListener('click', async () => {
+  await window.voxmorph?.toggleObsMode();
+});
+
+$('minimize').addEventListener('click', () => window.voxmorph?.minimize());
+$('close').addEventListener('click', () => window.voxmorph?.close());
+window.voxmorph?.onObsModeChanged((enabled) => {
+  document.body.classList.toggle('obs-mode', enabled);
+  $('obs-mode').textContent = enabled ? 'ВЫЙТИ ИЗ OBS (Ctrl+Shift+O)' : 'РЕЖИМ OBS';
 });
 
 function frame() {
