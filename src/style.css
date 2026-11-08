@@ -54,3 +54,9 @@ body.obs-mode #resize-handle{
 body.obs-mode #resize-handle:hover{
   background:linear-gradient(135deg,transparent 0 35%,#e8ddff 36% 43%,transparent 44% 53%,#e8ddff 54% 62%,transparent 63%);
 }
+
+/* Disable the native window-drag region while the resize grip is active. */
+body.obs-mode.resizing-avatar #drag-handle{
+  -webkit-app-region:no-drag;
+  pointer-events:none;
+}
