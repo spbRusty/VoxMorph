@@ -62,9 +62,9 @@ void main() {
   float n=fbm(q*5.0+vec2(t*0.75,-t*0.55));
   float angle=atan(q.y,q.x);
   float radial=length(q);
-  float voiceMotion=low*0.038+mid*0.045+high*0.026+motion*0.075+flux*0.045+onset*0.022+rhythm*0.028;
-  float gesture=sin(t*3.2+angle*2.2+mid*5.0+pitch*2.5)*motion*0.032 + sin(t*2.0+angle*1.5)*rhythm*0.016 + onset*0.014;
-  float flutter=sin(t*7.0+angle*11.0+high*5.0)*flux*0.004 + sin(t*10.0+angle*15.0)*breath*0.004 + sin(t*5.0+angle*5.0)*roughness*0.004 + sin(t*12.0+angle*19.0)*flatness*0.002 + sin(t*8.0+angle*9.0)*zeroCrossing*0.002;
+  float voiceMotion=low*0.075+mid*0.085+high*0.05+motion*0.15+flux*0.09+onset*0.055+rhythm*0.06;
+  float gesture=sin(t*3.2+angle*2.2+mid*5.0+pitch*2.5)*motion*0.075 + sin(t*2.0+angle*1.5)*rhythm*0.038 + onset*0.035;
+  float flutter=sin(t*7.0+angle*11.0+high*5.0)*flux*0.009 + sin(t*10.0+angle*15.0)*breath*0.009 + sin(t*5.0+angle*5.0)*roughness*0.008 + sin(t*12.0+angle*19.0)*flatness*0.004 + sin(t*8.0+angle*9.0)*zeroCrossing*0.004;
   // Несколько семейств силуэтов плавно сменяют друг друга: округлые, волнистые и вытянутые.
   float morphA=0.5+0.5*sin(time*0.052+sin(time*0.021)*1.2);
   float morphB=0.5+0.5*sin(time*0.041+2.2+sin(time*0.017)*1.0);
@@ -72,9 +72,9 @@ void main() {
   float silhouetteWave=sin(angle*(5.0+dynamicComplexity*2.0)+t*0.42+n*3.0)*0.021+sin(angle*9.0-t*0.3)*0.009;
   float silhouetteFlow=cos(angle*2.0-t*0.22+pitch*1.5)*0.028+sin(angle*4.0+t*0.18+n*2.0)*0.016 + cos(angle*5.0+t*0.45)*breath*0.008;
   float silhouette=mix(mix(silhouetteRound,silhouetteWave,morphA),silhouetteFlow,morphB*0.72);
-  float lobes=sin(angle*(5.0+dynamicComplexity*6.0)+n*3.0+t*0.8+low*2.0+mid*1.2)*(0.008+voiceMotion*0.28)*dynamicComplexity;
-  float ripple=sin(angle*8.0-t*1.2+high*5.0+flux*2.0)*(high*0.005+flux*0.008);
-  float pulse=0.008+level*0.022+low*0.028+gesture;
+  float lobes=sin(angle*(5.0+dynamicComplexity*6.0)+n*3.0+t*0.8+low*2.0+mid*1.2)*(0.012+voiceMotion*0.58)*dynamicComplexity;
+  float ripple=sin(angle*8.0-t*1.2+high*5.0+flux*2.0)*(high*0.012+flux*0.018);
+  float pulse=0.012+level*0.045+low*0.05+gesture;
   float bodyRadius=0.255+silhouette+drift+lobes+ripple+flutter+pulse+(n-0.5)*0.055*dynamicComplexity + sin(angle*3.0+t+pitch*5.0)*pitch*0.009 + (harmonics-0.5)*0.008 + onset*0.008 + (zeroCrossing-0.5)*0.005;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
@@ -97,7 +97,7 @@ void main() {
   col+=colorA*detail*edge;
 
   // Всегда два отдельных глаза по обе стороны центра; радужки переливаются независимо от громкости.
-  float eyeX=0.052+sin(t*0.9+mid)*0.004+high*0.002+pitch*0.001;
+  float eyeX=0.052+sin(t*0.9+mid)*0.006+high*0.004+pitch*0.003+motion*0.004;
   // Нерегулярное моргание примерно раз в несколько секунд, иногда с коротким повтором.
   float blinkPhase=fract(time*0.115+sin(time*0.31)*0.025);
   float blink=1.0-smoothstep(0.012,0.045,abs(blinkPhase-0.105));
@@ -106,8 +106,8 @@ void main() {
   for(int sideIndex=0; sideIndex<2; sideIndex++) {
     float side=sideIndex==0 ? -1.0 : 1.0;
     vec2 eyePos=vec2(side*eyeX,0.035+sin(t*1.25+mid*2.0+float(sideIndex))*0.012);
-    float eyeHeight=mix(0.043+level*0.004+low*0.003,0.0045,blink);
-    float e=ellipse(p,eyePos,vec2(0.027+mid*0.010,eyeHeight));
+    float eyeHeight=mix(0.043+level*0.012+low*0.009+onset*0.006,0.0045,blink);
+    float e=ellipse(p,eyePos,vec2(0.027+mid*0.018+level*0.008,eyeHeight));
     float eye=1.0-smoothstep(0.82,1.0,e);
     float pupil=1.0-smoothstep(0.24,0.36,ellipse(p,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
     vec3 iris=0.5+0.5*cos(colorPhase*0.65+vec3(0.0,2.1,4.2)+vec3(high,mid*0.8,low)+float(sideIndex)*0.8+brightness*0.6);
@@ -117,7 +117,7 @@ void main() {
     float eyeSpark=1.0-smoothstep(0.0,0.012,length(p-(eyePos+vec2(-0.008,0.012))));
     col+=iris*eyeSpark*eye*edge*(1.0-blink)*0.65;
   }
-  float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*1.0)*0.002),vec2(0.018+mid*0.022+level*0.012+onset*0.004,0.006+mid*0.009+level*0.006+pitch*0.003)));
+  float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*1.0)*0.002),vec2(0.018+mid*0.04+level*0.025+onset*0.012,0.006+mid*0.018+level*0.014+pitch*0.008)));
   col=mix(col,vec3(0.035,0.012,0.035),mouth*edge*0.9);
 
   float halo=exp(-radial*3.2)*0.045;
