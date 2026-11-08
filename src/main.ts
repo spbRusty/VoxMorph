@@ -163,17 +163,19 @@ canvas.addEventListener('pointerdown', (event) => {
   if (!document.documentElement.classList.contains('obs-mode') || event.button !== 0) return;
   draggingAvatar = true;
   canvas.setPointerCapture(event.pointerId);
+  window.voxmorph?.beginWindowDrag(event.screenX, event.screenY);
   canvas.style.cursor = 'grabbing';
 });
-canvas.addEventListener('pointermove', (event) => {
-  if (draggingAvatar) window.voxmorph?.moveWindowBy(event.movementX, event.movementY);
+window.addEventListener('pointermove', (event) => {
+  if (draggingAvatar) window.voxmorph?.moveWindowDrag(event.screenX, event.screenY);
 });
 const stopDraggingAvatar = () => {
+  if (draggingAvatar) window.voxmorph?.endWindowDrag();
   draggingAvatar = false;
   canvas.style.cursor = '';
 };
-canvas.addEventListener('pointerup', stopDraggingAvatar);
-canvas.addEventListener('pointercancel', stopDraggingAvatar);
+window.addEventListener('pointerup', stopDraggingAvatar);
+window.addEventListener('pointercancel', stopDraggingAvatar);
 canvas.addEventListener('lostpointercapture', stopDraggingAvatar);
 
 window.voxmorph?.onObsModeChanged((enabled) => {
