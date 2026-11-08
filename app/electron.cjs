@@ -1,6 +1,13 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, session } = require('electron');
 const path = require('node:path');
 
+// On Linux, npm may unpack chrome-sandbox without the SUID bit.
+// This app loads only its bundled local UI, so use Chromium's no-sandbox mode
+// rather than requiring users to change system ownership/permissions.
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('no-sandbox');
+}
+
 let win;
 let obsMode = false;
 
