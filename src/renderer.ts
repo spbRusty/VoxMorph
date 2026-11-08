@@ -43,21 +43,29 @@ void main() {
   float mirror=mix(p.x,abs(p.x),symmetry);
   vec2 q=vec2(mirror,p.y);
   float t=time*0.32;
-  float n=fbm(q*5.0+vec2(t,-t*0.7));
+  // Самостоятельное движение сохраняется даже в тишине.
+  float drift=sin(t*1.15+q.y*8.0)*0.012+sin(t*0.73+q.x*11.0)*0.009;
+  float n=fbm(q*5.0+vec2(t*0.75,-t*0.55));
   float angle=atan(q.y,q.x);
   float radial=length(q);
-  float lobes=sin(angle*(5.0+complexity*9.0)+n*5.0+t)*0.035*complexity;
-  float pulse=level*0.09+low*0.055;
-  float bodyRadius=0.255+lobes+pulse+(n-0.5)*0.105*complexity;
+  float voiceMotion=low*0.075+mid*0.045+high*0.025;
+  float lobes=sin(angle*(5.0+complexity*9.0)+n*5.0+t*1.35+low*2.5)* (0.035+voiceMotion)*complexity;
+  float ripple=sin(angle*11.0-t*2.1+high*5.0)*high*0.018;
+  float pulse=0.018+level*0.045+low*0.065;
+  float bodyRadius=0.255+drift+lobes+ripple+pulse+(n-0.5)*0.12*complexity;
   float organic=radial-bodyRadius;
   float edge=1.0-smoothstep(-0.008,0.012,organic);
   float inner=1.0-smoothstep(bodyRadius-0.13,bodyRadius-0.10,radial);
   float vein=sin((q.x*13.0+fbm(q*8.0+t)*2.0)*3.0+q.y*9.0+mid*5.0)*0.5+0.5;
   float detail=smoothstep(0.58,0.9,vein)*inner*0.45;
-  vec3 body=mix(colorA,colorB,clamp(n*0.9+low*0.35,0.0,1.0));
-  body=mix(body,colorC,detail);
+  // Автоматический цветовой цикл; голос ускоряет и смещает переливы.
+  float colorPhase=t*0.42+low*1.8+mid*1.1+high*0.7;
+  float colorWave=0.5+0.5*sin(colorPhase+n*2.2);
+  float colorAccent=0.5+0.5*sin(colorPhase*0.73+2.1+high*3.0);
+  vec3 body=mix(colorA,colorB,clamp(colorWave*0.82+n*0.18,0.0,1.0));
+  body=mix(body,colorC,detail*(0.55+colorAccent*0.8));
   body*=0.72+0.28*fbm(q*18.0+t);
-  float glow=exp(-abs(organic)*28.0)*0.65;
+  float glow=exp(-abs(organic)*28.0)*(0.65+high*0.55+mid*0.2);
   vec3 col=body*edge+colorB*glow*edge;
   col+=colorA*detail*edge;
 
@@ -67,15 +75,15 @@ void main() {
     if(fi < eyes) {
       float x=0.035+fi*0.035;
       if(symmetry>0.5 && mod(fi,2.0)==1.0) continue;
-      vec2 eyePos=vec2(x,0.035+sin(t+fi)*0.008);
-      float e=ellipse(q,eyePos,vec2(0.027+mid*0.009,0.043+level*0.012));
+      vec2 eyePos=vec2(x+sin(t*1.7+fi)*0.006+high*0.009,0.035+sin(t*1.25+fi+mid*2.0)*0.012);
+      float e=ellipse(q,eyePos,vec2(0.027+mid*0.014,0.043+level*0.012+low*0.008));
       float eye=1.0-smoothstep(0.82,1.0,e);
       float pupil=1.0-smoothstep(0.24,0.36,ellipse(q,eyePos+vec2(0.0,-0.004),vec2(0.009,0.018)));
       col=mix(col,vec3(0.025,0.018,0.04),eye*edge);
       col=mix(col,vec3(0.92,0.9,1.0),pupil*eye*edge);
     }
   }
-  float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095),vec2(0.018+level*0.055,0.006+level*0.025)));
+  float mouth=1.0-smoothstep(0.012,0.022,ellipse(q,vec2(0.0,-0.095+sin(t*2.0)*0.004),vec2(0.018+mid*0.045+level*0.025,0.006+mid*0.018+level*0.012)));
   col=mix(col,vec3(0.035,0.012,0.035),mouth*edge*0.9);
 
   float halo=exp(-radial*3.2)*0.045;
