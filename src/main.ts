@@ -9,6 +9,7 @@ app.innerHTML = `
       <a class="brand" href="#"><span class="brand-mark">V</span><span>VOXMORPH<small>PROCEDURAL AVATAR LAB</small></span></a>
       <div class="top-status"><i></i><span id="status">МИКРОФОН НЕ ПОДКЛЮЧЁН</span></div>
       <div class="window-actions">
+        <button class="language-button" id="language">EN</button>
         <button class="mode-button" id="obs-mode" title="Прозрачный режим для OBS">РЕЖИМ OBS</button>
         <button class="icon-button" id="fullscreen" title="Полный экран">⛶</button>
         <button class="icon-button window-control" id="minimize" title="Свернуть">−</button>
@@ -17,24 +18,13 @@ app.innerHTML = `
     </header>
     <section class="workspace">
       <aside class="sidebar">
-        <div class="section-kicker">01 / ИСТОЧНИК</div>
-        <h1>Твоё новое<br><em>альтер эго.</em></h1>
-        <p class="intro">Живой цифровой организм. Он дышит, пульсирует и меняет форму вместе с твоим голосом.</p>
+        <div class="section-kicker" id="source-title">ИСТОЧНИК ЗВУКА</div>
+        <h1 id="headline">Живой организм<br><em>из твоего голоса.</em></h1>
+        <p class="intro" id="intro">Форма, цвет и характер существа меняются в реальном времени вслед за звучанием твоего голоса.</p>
         <label class="field-label" for="device">Устройство ввода</label>
         <select id="device"><option value="">Системный микрофон</option></select>
         <button class="primary-button" id="start"><span class="button-dot"></span> ЗАПУСТИТЬ МИКРОФОН</button>
-        <div class="divider"></div>
-        <div class="section-kicker">02 / АВТОНОМНАЯ МОРФОЛОГИЯ</div>
-        <p class="intro morphology-note">Симметрия, сложность и пластика меняются самостоятельно под воздействием голоса.</p>
-        <div class="section-kicker">03 / ПАЛИТРА</div>
-        <div class="swatches">
-          <button class="swatch active" data-palette="violet" aria-label="Фиолетовая"></button>
-          <button class="swatch" data-palette="acid" aria-label="Кислотная"></button>
-          <button class="swatch" data-palette="ember" aria-label="Огненная"></button>
-          <button class="swatch" data-palette="ice" aria-label="Ледяная"></button>
-          <button class="swatch" data-palette="mono" aria-label="Монохромная"></button>
-        </div>
-        <button class="secondary-button" id="randomize">↻ &nbsp; СЛУЧАЙНАЯ МОРФОЛОГИЯ</button>
+        
       </aside>
       <section class="stage-wrap">
         <div class="stage-head"><span>СУЩЕСТВО / <b id="seed">VX-001</b></span><span class="live-label"><i></i> LIVE RENDER</span></div>
@@ -68,6 +58,12 @@ app.innerHTML = `
     <footer><span>VOXMORPH <b>0.1.0</b></span><span>MADE OF SOUND &amp; MATHEMATICS</span><span>LINUX / UBUNTU</span></footer>
   </main>`;
 
+const translations = {
+ru: { off:'МИКРОФОН НЕ ПОДКЛЮЧЁН', on:'АУДИОПОТОК АКТИВЕН', error:'НЕТ ДОСТУПА К МИКРОФОНУ', obs:'РЕЖИМ OBS', exit:'ВЫЙТИ ИЗ OBS (Ctrl+Shift+O)', source:'ИСТОЧНИК ЗВУКА', headline:'Живой организм<br><em>из твоего голоса.</em>', intro:'Форма, цвет и характер существа меняются в реальном времени вслед за звучанием твоего голоса.', input:'Устройство ввода', start:'ЗАПУСТИТЬ МИКРОФОН', stop:'ОСТАНОВИТЬ МИКРОФОН', hint:'НАЖМИ «ЗАПУСТИТЬ МИКРОФОН»<br><small>ИЛИ ГОВОРИ, ЧТОБЫ ОНО ПРОСНУЛОСЬ</small>', device:'Системный микрофон', mic:'Микрофон' },
+en: { off:'MICROPHONE DISCONNECTED', on:'AUDIO STREAM ACTIVE', error:'MICROPHONE ACCESS DENIED', obs:'OBS MODE', exit:'EXIT OBS (Ctrl+Shift+O)', source:'AUDIO INPUT', headline:'A living being<br><em>shaped by your voice.</em>', intro:'Its shape, color and character evolve in real time with the sound of your voice.', input:'Input device', start:'START MICROPHONE', stop:'STOP MICROPHONE', hint:'CLICK “START MICROPHONE”<br><small>OR SPEAK TO WAKE IT UP</small>', device:'System microphone', mic:'Microphone' }
+};
+let language: 'ru'|'en' = localStorage.getItem('voxmorph-language') === 'en' ? 'en' : 'ru';
+function applyLanguage(){ const t=translations[language]; document.documentElement.lang=language; $('language').textContent=language==='ru'?'EN':'РУ'; $('source-title').textContent=t.source; $('headline').innerHTML=t.headline; $('intro').textContent=t.intro; $('input-label').textContent=t.input; $('obs-mode').textContent=document.body.classList.contains('obs-mode')?t.exit:t.obs; $('status').textContent=running?t.on:t.off; $('hint').innerHTML=t.hint; if(!running) $('start').innerHTML='<span class="button-dot"></span>'+t.start; const sel=$('device'); if(sel.options.length===1 && !sel.options[0].value) sel.options[0].textContent=t.device; }
 const canvas = document.querySelector<HTMLCanvasElement>('#creature')!;
 const creature = new Creature(canvas);
 const mic = new Microphone();
@@ -105,7 +101,7 @@ async function refreshDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) return;
     const devices = await navigator.mediaDevices.enumerateDevices();
     const inputs = devices.filter(d => d.kind === 'audioinput');
-    select.innerHTML = inputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `Микрофон ${i + 1}`}</option>`).join('');
+    select.innerHTML = inputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `${translations[language].mic} ${i + 1}`}</option>`).join('');
   } catch { /* Разрешение будет запрошено при запуске. */ }
 }
 
@@ -113,8 +109,8 @@ $('start').addEventListener('click', async () => {
   const button = $('start');
   if (running) {
     mic.stop(); running = false;
-    button.innerHTML = '<span class="button-dot"></span> ЗАПУСТИТЬ МИКРОФОН';
-    $('status').textContent = 'МИКРОФОН НЕ ПОДКЛЮЧЁН';
+    button.innerHTML = '<span class="button-dot"></span>'+translations[language].start;
+    $('status').textContent = translations[language].off;
     $('hint').classList.remove('hidden');
     return;
   }
@@ -124,29 +120,16 @@ $('start').addEventListener('click', async () => {
     }
     await mic.start(($('device') as HTMLSelectElement).value || undefined);
     running = true;
-    button.textContent = '■ ОСТАНОВИТЬ МИКРОФОН';
-    $('status').textContent = 'АУДИОПОТОК АКТИВЕН';
+    button.textContent = '■ '+translations[language].stop;
+    $('status').textContent = translations[language].on;
     $('hint').classList.add('hidden');
     await refreshDevices();
   } catch (error) {
-    $('status').textContent = 'НЕТ ДОСТУПА К МИКРОФОНУ';
+    $('status').textContent = translations[language].error;
     alert(error instanceof Error ? error.message : 'Не удалось подключить микрофон');
   }
 });
 
-
-document.querySelectorAll<HTMLButtonElement>('.swatch').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelector('.swatch.active')?.classList.remove('active');
-    button.classList.add('active');
-    creature.setPalette(button.dataset.palette || 'violet');
-  });
-});
-
-$('randomize').addEventListener('click', () => {
-  creature.randomize();
-  $('seed').textContent = `VX-${String(Math.floor(Math.random() * 900) + 100)}`;
-});
 
 $('fullscreen').addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -159,6 +142,7 @@ $('obs-mode').addEventListener('click', async () => {
 
 $('minimize').addEventListener('click', () => window.voxmorph?.minimize());
 $('close').addEventListener('click', () => window.voxmorph?.close());
+$('language').addEventListener('click', () => { language=language==='ru'?'en':'ru'; localStorage.setItem('voxmorph-language',language); applyLanguage(); });
 
 
 
@@ -204,7 +188,7 @@ resizeHandle.addEventListener('pointercancel', stopResize);
 window.voxmorph?.onObsModeChanged((enabled) => {
   document.documentElement.classList.toggle('obs-mode', enabled);
   document.body.classList.toggle('obs-mode', enabled);
-  $('obs-mode').textContent = enabled ? 'ВЫЙТИ ИЗ OBS (Ctrl+Shift+O)' : 'РЕЖИМ OBS';
+  $('obs-mode').textContent = enabled ? translations[language].exit : translations[language].obs;
 });
 
 function frame() {
@@ -215,4 +199,5 @@ function frame() {
   requestAnimationFrame(frame);
 }
 frame();
+applyLanguage();
 refreshDevices();
