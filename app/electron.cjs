@@ -5,6 +5,24 @@ if (process.platform === 'linux') app.commandLine.appendSwitch('no-sandbox');
 
 let win;
 let obsMode = false;
+let topmostTimer = null;
+
+function enforceTopmost() {
+  if (!obsMode || !win || win.isDestroyed() || win.isMinimized()) return;
+  win.setAlwaysOnTop(true, 'screen-saver');
+  win.moveTop();
+}
+
+function startTopmostGuard() {
+  stopTopmostGuard();
+  enforceTopmost();
+  topmostTimer = setInterval(enforceTopmost, 800);
+}
+
+function stopTopmostGuard() {
+  if (topmostTimer) clearInterval(topmostTimer);
+  topmostTimer = null;
+}
 
 function setObsMode(enabled) {
   if (!win || win.isDestroyed()) return false;
@@ -16,9 +34,11 @@ function setObsMode(enabled) {
     win.center();
     win.setAlwaysOnTop(true, 'screen-saver');
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    startTopmostGuard();
     // Keep mouse input enabled so the transparent avatar can be dragged.
     win.setIgnoreMouseEvents(false);
   } else {
+    stopTopmostGuard();
     win.setIgnoreMouseEvents(false);
     win.setVisibleOnAllWorkspaces(false);
     win.setAlwaysOnTop(false);
@@ -44,9 +64,14 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
-  win.on('blur', () => { if (obsMode && !win.isDestroyed()) { win.setAlwaysOnTop(true, 'screen-saver'); } });
-  win.on('show', () => { if (obsMode && !win.isDestroyed()) { win.setAlwaysOnTop(true, 'screen-saver'); win.moveTop(); } });
-  win.on('closed', () => { win = null; obsMode = false; });
+  win.on('blur', () => {
+    if (obsMode && !win.isDestroyed()) {
+      win.setAlwaysOnTop(true, 'screen-saver');
+      setTimeout(enforceTopmost, 120);
+    }
+  });
+  win.on('show', () => { if (obsMode) enforceTopmost(); });
+  win.on('closed', () => { stopTopmostGuard(); win = null; obsMode = false; });
 }
 
 app.whenReady().then(() => {
