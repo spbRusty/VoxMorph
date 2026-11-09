@@ -184,7 +184,13 @@ export class Creature {
   }
 
   render(audio:AudioFrame) {
-    const gl=this.gl, u=this.uniforms, p=this.palette;
+    const gl=this.gl, u=this.uniforms;
+    const paletteList=Object.values(palettes);
+    const phase=((performance.now()-this.start)/1000*0.055+audio.brightness*0.42+audio.pitch*0.28+audio.roughness*0.22+audio.breath*0.18)%paletteList.length;
+    const index=Math.floor(phase), blend=phase-index, from=paletteList[index], to=paletteList[(index+1)%paletteList.length];
+    const p:Palette={a:from.a.map((v,i)=>v+(to.a[i]-v)*blend) as [number,number,number],b:from.b.map((v,i)=>v+(to.b[i]-v)*blend) as [number,number,number],c:from.c.map((v,i)=>v+(to.c[i]-v)*blend) as [number,number,number]};
+    this.params.symmetry=Math.max(0.78,Math.min(1,0.96-audio.motion*0.12-audio.roughness*0.08+audio.pitch*0.035));
+    this.params.complexity=Math.max(0.22,Math.min(0.82,0.34+audio.high*0.24+audio.flux*0.20+audio.roughness*0.14+audio.mid*0.12+audio.rhythm*0.08));
     gl.useProgram(this.program);
     gl.uniform2f(u.resolution,this.canvas.width,this.canvas.height);
     gl.uniform1f(u.time,(performance.now()-this.start)/1000);
