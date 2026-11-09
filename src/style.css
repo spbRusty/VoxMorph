@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
-:root{font-family:Manrope,Inter,system-ui,sans-serif;color:#e9eaf2;background:#090b12;font-synthesis:none;text-rendering:optimizeLegibility;font-smooth:always}
+
+:root{font-family:Inter,'Segoe UI',Arial,sans-serif;color:#e9eaf2;background:#090b12;font-synthesis:none;text-rendering:optimizeLegibility;font-smooth:always}
 *{box-sizing:border-box}body{margin:0;min-width:320px;min-height:100vh;background:radial-gradient(ellipse at 72% 46%,#17182a 0%,#0b0d16 48%,#080a10 100%)}
 button,select,input{font:inherit}.shell{min-height:100vh;display:flex;flex-direction:column;padding:0 38px}.topbar{height:76px;border-bottom:1px solid #ffffff12;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:12px;color:#f3f1fb;text-decoration:none;font-weight:800;letter-spacing:.13em;font-size:13px}.brand small{display:block;font:9px 'DM Mono',monospace;letter-spacing:.17em;color:#77798d;margin-top:4px}.brand-mark{width:34px;height:34px;border:1px solid #a58cff77;border-radius:10px;display:grid;place-items:center;color:#c4adff;font-size:19px;box-shadow:0 0 22px #8b64ff22}
@@ -62,3 +62,6 @@ body.obs-mode.resizing-avatar #drag-handle{
 }
 
 .workspace{grid-template-columns:260px minmax(0,1fr);gap:38px}.sidebar{align-self:center;padding:20px 0}.sidebar h1{font-size:31px}.language-button{height:34px;min-width:42px;padding:0 9px;border:1px solid #ffffff25;border-radius:7px;background:#ffffff09;color:#d7cafa;font:500 10px 'DM Mono',monospace;cursor:pointer;-webkit-app-region:no-drag}@media(max-width:900px){.workspace{grid-template-columns:220px minmax(0,1fr);gap:24px}}@media(max-width:650px){.workspace{display:flex;flex-direction:column}.sidebar{display:block}.sidebar h1,.intro{grid-column:auto}}
+
+/* More readable typography, including technical labels and meters. */
+:root,body,button,select,input{font-family:Inter,'Segoe UI',Arial,sans-serif!important} .top-status,.stage-head,.stage-coordinates,footer,.section-kicker,.field-label,.control-row output,.meter>span,.brand small,.primary-button,.mode-button{font-family:Inter,'Segoe UI',Arial,sans-serif!important;letter-spacing:.035em} .meter>span{font-size:10px;font-weight:600;color:#a8a8ba;letter-spacing:.015em}.stage-head,.stage-coordinates,.top-status,.field-label,.section-kicker{font-size:11px}.brand small{font-size:10px}.primary-button,.mode-button{font-size:11px;font-weight:650}
