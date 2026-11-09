@@ -21,13 +21,13 @@ app.innerHTML = `
         <div class="section-kicker" id="source-title">ИСТОЧНИК ЗВУКА</div>
         <h1 id="headline">Живой организм<br><em>из твоего голоса.</em></h1>
         <p class="intro" id="intro">Форма, цвет и характер существа меняются в реальном времени вслед за звучанием твоего голоса.</p>
-        <label class="field-label" for="device">Устройство ввода</label>
+        <label class="field-label" for="device" id="input-label">Устройство ввода</label>
         <select id="device"><option value="">Системный микрофон</option></select>
         <button class="primary-button" id="start"><span class="button-dot"></span> ЗАПУСТИТЬ МИКРОФОН</button>
         
       </aside>
       <section class="stage-wrap">
-        <div class="stage-head"><span>СУЩЕСТВО / <b id="seed">VX-001</b></span><span class="live-label"><i></i> LIVE RENDER</span></div>
+        <div class="stage-head"><span id="stage-title">СУЩЕСТВО /</span> <b id="seed">VX-001</b><span class="live-label"><i></i> <span id="stage-live">ЖИВОЙ РЕНДЕР</span></span></div>
         <div class="stage" id="stage">
           <canvas id="creature"></canvas>
           <div id="drag-handle" aria-hidden="true"></div>
@@ -55,7 +55,7 @@ app.innerHTML = `
         </div>
       </section>
     </section>
-    <footer><span>VOXMORPH <b>0.1.0</b></span><span>MADE OF SOUND &amp; MATHEMATICS</span><span>LINUX / UBUNTU</span></footer>
+    <footer><span>VOXMORPH <b>0.1.0</b></span><span id="footer-made">СОЗДАНО ИЗ ЗВУКА И МАТЕМАТИКИ</span><span id="footer-platform">LINUX / UBUNTU</span></footer>
   </main>`;
 
 const translations = {
@@ -63,7 +63,7 @@ ru: { off:'МИКРОФОН НЕ ПОДКЛЮЧЁН', on:'АУДИОПОТОК �
 en: { off:'MICROPHONE DISCONNECTED', on:'AUDIO STREAM ACTIVE', error:'MICROPHONE ACCESS DENIED', obs:'OBS MODE', exit:'EXIT OBS (Ctrl+Shift+O)', source:'AUDIO INPUT', headline:'A living being<br><em>shaped by your voice.</em>', intro:'Its shape, color and character evolve in real time with the sound of your voice.', input:'Input device', start:'START MICROPHONE', stop:'STOP MICROPHONE', hint:'CLICK “START MICROPHONE”<br><small>OR SPEAK TO WAKE IT UP</small>', device:'System microphone', mic:'Microphone' }
 };
 let language: 'ru'|'en' = localStorage.getItem('voxmorph-language') === 'en' ? 'en' : 'ru';
-function applyLanguage(){ const t=translations[language]; document.documentElement.lang=language; $('language').textContent=language==='ru'?'EN':'РУ'; $('source-title').textContent=t.source; $('headline').innerHTML=t.headline; $('intro').textContent=t.intro; $('input-label').textContent=t.input; $('obs-mode').textContent=document.body.classList.contains('obs-mode')?t.exit:t.obs; $('status').textContent=running?t.on:t.off; $('hint').innerHTML=t.hint; if(!running) $('start').innerHTML='<span class="button-dot"></span>'+t.start; const sel=$('device'); if(sel.options.length===1 && !sel.options[0].value) sel.options[0].textContent=t.device; }
+function applyLanguage(){ const t=translations[language]; const ru=language==='ru'; document.documentElement.lang=language; $('language').textContent=ru?'EN':'РУ'; $('source-title').textContent=t.source; $('headline').innerHTML=t.headline; $('intro').textContent=t.intro; $('input-label').textContent=t.input; $('obs-mode').textContent=document.body.classList.contains('obs-mode')?t.exit:t.obs; $('status').textContent=running?t.on:t.off; $('hint').innerHTML=t.hint; $('start').innerHTML=running?'■ '+t.stop:'<span class="button-dot"></span>'+t.start; $('brand-subtitle').textContent=ru?'ПРОЦЕДУРНЫЙ АВАТАР':'PROCEDURAL AVATAR'; $('stage-title').textContent=ru?'СУЩЕСТВО /':'CREATURE /'; $('stage-live').textContent=ru?'ЖИВОЙ РЕНДЕР':'LIVE RENDER'; $('footer-made').textContent=ru?'СОЗДАНО ИЗ ЗВУКА И МАТЕМАТИКИ':'MADE OF SOUND & MATHEMATICS'; $('footer-platform').textContent=ru?'LINUX / UBUNTU':'LINUX / UBUNTU'; const labels=ru?['УРОВЕНЬ','БАС','ГОЛОС','ВОЗДУХ','ВЫСОТА','ДЫХАНИЕ','ЗВУЧАНИЕ','ЯРКОСТЬ','ШЕРОХОВАТОСТЬ','РИТМ','АТАКА','ГАРМОНИКИ','ПЛОСКОСТЬ','ПЕРЕХОДЫ','ДВИЖЕНИЕ','ИЗМЕНЕНИЕ']:['LEVEL','BASS','VOICE','AIR','PITCH','BREATH','VOICING','BRIGHT','ROUGH','RHYTHM','ONSET','HARMONICS','FLATNESS','ZERO CROSS','MOTION','FLUX']; document.querySelectorAll('.meter>span').forEach((el,i)=>el.textContent=labels[i]||''); const sel=$('device'); if(sel.options.length===1 && !sel.options[0].value) sel.options[0].textContent=t.device; }
 const canvas = document.querySelector<HTMLCanvasElement>('#creature')!;
 const creature = new Creature(canvas);
 const mic = new Microphone();
