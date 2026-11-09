@@ -6,7 +6,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <main class="shell">
     <header class="topbar">
-      <a class="brand" href="#"><span class="brand-mark">V</span><span>VOXMORPH<small>PROCEDURAL AVATAR LAB</small></span></a>
+      <a class="brand" href="#"><span class="brand-mark">V</span><span>VOXMORPH<small id="brand-subtitle">ПРОЦЕДУРНЫЙ АВАТАР</small></span></a>
       <div class="top-status"><i></i><span id="status">МИКРОФОН НЕ ПОДКЛЮЧЁН</span></div>
       <div class="window-actions">
         <button class="language-button" id="language">EN</button>
@@ -33,7 +33,7 @@ app.innerHTML = `
           <div id="drag-handle" aria-hidden="true"></div>
           <div id="resize-handle" title="Потяните, чтобы изменить размер" aria-label="Изменить размер существа"></div>
           <div class="stage-hint" id="hint">НАЖМИ «ЗАПУСТИТЬ МИКРОФОН»<br><small>ИЛИ ГОВОРИ, ЧТОБЫ ОНО ПРОСНУЛОСЬ</small></div>
-          <div class="stage-coordinates">WEBGL 2.0 <span>•</span> REALTIME AUDIO</div>
+          <div class="stage-coordinates"><span id="render-tech">WEBGL 2.0</span> <span>•</span> <span id="render-mode">ОБРАБОТКА ЗВУКА В РЕАЛЬНОМ ВРЕМЕНИ</span></div>
         </div>
         <div class="meters">
           <div class="meter"><span>LEVEL</span><div><i id="level-meter"></i></div></div>
@@ -59,11 +59,11 @@ app.innerHTML = `
   </main>`;
 
 const translations = {
-ru: { off:'МИКРОФОН НЕ ПОДКЛЮЧЁН', on:'АУДИОПОТОК АКТИВЕН', error:'НЕТ ДОСТУПА К МИКРОФОНУ', obs:'РЕЖИМ OBS', exit:'ВЫЙТИ ИЗ OBS (Ctrl+Shift+O)', source:'ИСТОЧНИК ЗВУКА', headline:'Живой организм<br><em>из твоего голоса.</em>', intro:'Форма, цвет и характер существа меняются в реальном времени вслед за звучанием твоего голоса.', input:'Устройство ввода', start:'ЗАПУСТИТЬ МИКРОФОН', stop:'ОСТАНОВИТЬ МИКРОФОН', hint:'НАЖМИ «ЗАПУСТИТЬ МИКРОФОН»<br><small>ИЛИ ГОВОРИ, ЧТОБЫ ОНО ПРОСНУЛОСЬ</small>', device:'Системный микрофон', mic:'Микрофон' },
-en: { off:'MICROPHONE DISCONNECTED', on:'AUDIO STREAM ACTIVE', error:'MICROPHONE ACCESS DENIED', obs:'OBS MODE', exit:'EXIT OBS (Ctrl+Shift+O)', source:'AUDIO INPUT', headline:'A living being<br><em>shaped by your voice.</em>', intro:'Its shape, color and character evolve in real time with the sound of your voice.', input:'Input device', start:'START MICROPHONE', stop:'STOP MICROPHONE', hint:'CLICK “START MICROPHONE”<br><small>OR SPEAK TO WAKE IT UP</small>', device:'System microphone', mic:'Microphone' }
+ru: { off:'МИКРОФОН НЕ ПОДКЛЮЧЁН', on:'АУДИОПОТОК АКТИВЕН', error:'НЕТ ДОСТУПА К МИКРОФОНУ', obs:'РЕЖИМ OBS', exit:'ВЫЙТИ ИЗ OBS (Ctrl+Shift+O)', source:'ИСТОЧНИК ЗВУКА', headline:'Живой организм<br><em>из твоего голоса.</em>', intro:'Форма, цвет и характер существа меняются в реальном времени вслед за звучанием твоего голоса.', input:'Устройство ввода', start:'ЗАПУСТИТЬ МИКРОФОН', stop:'ОСТАНОВИТЬ МИКРОФОН', hint:'НАЖМИ «ЗАПУСТИТЬ МИКРОФОН»<br><small>ИЛИ ГОВОРИ, ЧТОБЫ ОНО ПРОСНУЛОСЬ</small>', device:'Системный микрофон', mic:'Микрофон', stage:'СУЩЕСТВО /', live:'ЖИВОЙ РЕНДЕР', made:'СОЗДАНО ИЗ ЗВУКА И МАТЕМАТИКИ', tech:'ОБРАБОТКА ЗВУКА В РЕАЛЬНОМ ВРЕМЕНИ', resize:'Потяни, чтобы изменить размер', fullscreen:'Полный экран', minimize:'Свернуть', close:'Закрыть', errorDetail:'Не удалось подключить микрофон' },
+en: { off:'MICROPHONE DISCONNECTED', on:'AUDIO STREAM ACTIVE', error:'MICROPHONE ACCESS DENIED', obs:'OBS MODE', exit:'EXIT OBS (Ctrl+Shift+O)', source:'AUDIO INPUT', headline:'A living being<br><em>shaped by your voice.</em>', intro:'Its shape, color and character evolve in real time with the sound of your voice.', input:'Input device', start:'START MICROPHONE', stop:'STOP MICROPHONE', hint:'CLICK “START MICROPHONE”<br><small>OR SPEAK TO WAKE IT UP</small>', device:'System microphone', mic:'Microphone', stage:'CREATURE /', live:'LIVE RENDER', made:'MADE OF SOUND & MATHEMATICS', tech:'REAL-TIME AUDIO PROCESSING', resize:'Drag to resize', fullscreen:'Fullscreen', minimize:'Minimize', close:'Close', errorDetail:'Could not connect microphone' }
 };
 let language: 'ru'|'en' = localStorage.getItem('voxmorph-language') === 'en' ? 'en' : 'ru';
-function applyLanguage(){ const t=translations[language]; const ru=language==='ru'; document.documentElement.lang=language; $('language').textContent=ru?'EN':'РУ'; $('source-title').textContent=t.source; $('headline').innerHTML=t.headline; $('intro').textContent=t.intro; $('input-label').textContent=t.input; $('obs-mode').textContent=document.body.classList.contains('obs-mode')?t.exit:t.obs; $('status').textContent=running?t.on:t.off; $('hint').innerHTML=t.hint; $('start').innerHTML=running?'■ '+t.stop:'<span class="button-dot"></span>'+t.start; $('brand-subtitle').textContent=ru?'ПРОЦЕДУРНЫЙ АВАТАР':'PROCEDURAL AVATAR'; $('stage-title').textContent=ru?'СУЩЕСТВО /':'CREATURE /'; $('stage-live').textContent=ru?'ЖИВОЙ РЕНДЕР':'LIVE RENDER'; $('footer-made').textContent=ru?'СОЗДАНО ИЗ ЗВУКА И МАТЕМАТИКИ':'MADE OF SOUND & MATHEMATICS'; $('footer-platform').textContent=ru?'LINUX / UBUNTU':'LINUX / UBUNTU'; const labels=ru?['УРОВЕНЬ','БАС','ГОЛОС','ВОЗДУХ','ВЫСОТА','ДЫХАНИЕ','ЗВУЧАНИЕ','ЯРКОСТЬ','ШЕРОХОВАТОСТЬ','РИТМ','АТАКА','ГАРМОНИКИ','ПЛОСКОСТЬ','ПЕРЕХОДЫ','ДВИЖЕНИЕ','ИЗМЕНЕНИЕ']:['LEVEL','BASS','VOICE','AIR','PITCH','BREATH','VOICING','BRIGHT','ROUGH','RHYTHM','ONSET','HARMONICS','FLATNESS','ZERO CROSS','MOTION','FLUX']; document.querySelectorAll('.meter>span').forEach((el,i)=>el.textContent=labels[i]||''); const sel=$('device'); if(sel.options.length===1 && !sel.options[0].value) sel.options[0].textContent=t.device; }
+function applyLanguage(){ const t=translations[language]; const ru=language==='ru'; document.documentElement.lang=language; $('language').textContent=ru?'EN':'РУ'; $('source-title').textContent=t.source; $('headline').innerHTML=t.headline; $('intro').textContent=t.intro; $('input-label').textContent=t.input; $('obs-mode').textContent=document.body.classList.contains('obs-mode')?t.exit:t.obs; $('obs-mode').title=ru?'Прозрачный режим для OBS':'Transparent mode for OBS'; $('status').textContent=running?t.on:t.off; $('hint').innerHTML=t.hint; $('start').innerHTML=running?'■ '+t.stop:'<span class="button-dot"></span>'+t.start; $('brand-subtitle').textContent=ru?'ПРОЦЕДУРНЫЙ АВАТАР':'PROCEDURAL AVATAR'; $('stage-title').textContent=t.stage; $('stage-live').textContent=t.live; $('footer-made').textContent=t.made; $('footer-platform').textContent='LINUX / UBUNTU'; $('render-mode').textContent=t.tech; $('resize-handle').title=t.resize; $('resize-handle').setAttribute('aria-label',t.resize); $('fullscreen').title=t.fullscreen; $('minimize').title=t.minimize; $('close').title=t.close; const labels=ru?['УРОВЕНЬ','НИЗКИЕ ЧАСТОТЫ','ГОЛОС','ВЫСОКИЕ ЧАСТОТЫ','ВЫСОТА ТОНА','ДЫХАНИЕ','ЗВОНКОСТЬ','ЯРКОСТЬ','ШУМНОСТЬ','РИТМ','НАЧАЛО ЗВУКА','ГАРМОНИКИ','ОДНОРОДНОСТЬ','ПЕРЕХОДЫ ЧЕРЕЗ НОЛЬ','ДВИЖЕНИЕ','ИЗМЕНЕНИЕ СПЕКТРА']:['LEVEL','BASS','VOICE','TREBLE','PITCH','BREATH','VOICING','BRIGHTNESS','NOISINESS','RHYTHM','ONSET','HARMONICS','SPECTRAL FLATNESS','ZERO CROSSINGS','MOTION','SPECTRAL FLUX']; document.querySelectorAll('.meter>span').forEach((el,i)=>{el.textContent=labels[i]||''; el.title=labels[i]||'';}); const sel=$('device'); if(sel.options.length===1 && !sel.options[0].value) sel.options[0].textContent=t.device; }
 const canvas = document.querySelector<HTMLCanvasElement>('#creature')!;
 const creature = new Creature(canvas);
 const mic = new Microphone();
@@ -101,7 +101,9 @@ async function refreshDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) return;
     const devices = await navigator.mediaDevices.enumerateDevices();
     const inputs = devices.filter(d => d.kind === 'audioinput');
+    const selected=select.value;
     select.innerHTML = inputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `${translations[language].mic} ${i + 1}`}</option>`).join('');
+    if(selected && inputs.some(d=>d.deviceId===selected)) select.value=selected;
   } catch { /* Разрешение будет запрошено при запуске. */ }
 }
 
@@ -126,7 +128,7 @@ $('start').addEventListener('click', async () => {
     await refreshDevices();
   } catch (error) {
     $('status').textContent = translations[language].error;
-    alert(error instanceof Error ? error.message : 'Не удалось подключить микрофон');
+    alert(error instanceof Error ? error.message : translations[language].errorDetail);
   }
 });
 
