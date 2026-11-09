@@ -16,7 +16,6 @@ function setObsMode(enabled) {
     win.center();
     win.setAlwaysOnTop(true, 'screen-saver');
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-    win.moveTop();
     // Keep mouse input enabled so the transparent avatar can be dragged.
     win.setIgnoreMouseEvents(false);
   } else {
@@ -45,7 +44,7 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
-  win.on('blur', () => { if (obsMode && !win.isDestroyed()) { win.setAlwaysOnTop(true, 'screen-saver'); win.moveTop(); } });
+  win.on('blur', () => { if (obsMode && !win.isDestroyed()) { win.setAlwaysOnTop(true, 'screen-saver'); } });
   win.on('show', () => { if (obsMode && !win.isDestroyed()) { win.setAlwaysOnTop(true, 'screen-saver'); win.moveTop(); } });
   win.on('closed', () => { win = null; obsMode = false; });
 }
