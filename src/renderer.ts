@@ -83,7 +83,7 @@ void main() {
   float vein=sin((q.x*(13.0+brightness*9.0)+fbm(q*8.0+t)*2.0)*3.0+q.y*9.0+mid*5.0+pitch*7.0)*0.5+0.5;
   float detail=smoothstep(0.58,0.9,vein)*inner*0.45;
   // Автоматический цветовой цикл; голос ускоряет и смещает переливы.
-  float colorPhase=t*0.24+low*0.8+mid*0.65+high*0.45+motion*0.45+flux*0.35+pitch*0.55+brightness*0.35+rhythm*0.3;
+  float colorPhase=t*0.12+level*3.8+low*1.6+mid*2.4+high*2.8+motion*2.1+flux*1.8+pitch*1.3+brightness*1.8+rhythm*1.2+breath*1.5+roughness*1.6;
   float colorWave=0.5+0.5*sin(colorPhase+n*2.2);
   float colorAccent=0.5+0.5*sin(colorPhase*0.55+2.1+high*1.2+motion*0.8+breath*1.0+voicing*0.8);
   vec3 spectral=0.5+0.5*cos(colorPhase+vec3(0.0,2.1,4.2));
@@ -91,7 +91,7 @@ void main() {
   body=mix(body,colorC,detail*(0.22+colorAccent*0.38));
   body=mix(body,body*vec3(0.88,0.94,1.05),breath*0.10);
   body=mix(body,body*vec3(1.04,0.94,1.02),roughness*0.07);
-  body=mix(body,body*(0.78+spectral*0.34)+spectral*0.035,0.07+motion*0.07+flux*0.04);
+  body=mix(body,body*(0.62+spectral*0.62)+spectral*0.11,0.16+level*0.24+motion*0.16+flux*0.12+brightness*0.12);
   body*=0.72+0.28*fbm(q*18.0+t);
   float glow=exp(-abs(organic)*24.0)*(0.38+high*0.22+mid*0.10+voicing*0.08+harmonics*0.05);
   vec3 col=body*edge+colorB*glow*edge;
@@ -186,7 +186,7 @@ export class Creature {
   render(audio:AudioFrame) {
     const gl=this.gl, u=this.uniforms;
     const paletteList=Object.values(palettes);
-    const phase=((performance.now()-this.start)/1000*0.055+audio.brightness*0.42+audio.pitch*0.28+audio.roughness*0.22+audio.breath*0.18)%paletteList.length;
+    const phase=((performance.now()-this.start)/1000*0.018+audio.level*2.25+audio.low*0.9+audio.mid*1.35+audio.high*1.55+audio.brightness*0.8+audio.pitch*0.7+audio.motion*1.2+audio.flux*0.9+audio.roughness*0.7+audio.breath*0.55)%paletteList.length;
     const index=Math.floor(phase), blend=phase-index, from=paletteList[index], to=paletteList[(index+1)%paletteList.length];
     const p:Palette={a:from.a.map((v,i)=>v+(to.a[i]-v)*blend) as [number,number,number],b:from.b.map((v,i)=>v+(to.b[i]-v)*blend) as [number,number,number],c:from.c.map((v,i)=>v+(to.c[i]-v)*blend) as [number,number,number]};
     this.params.symmetry=Math.max(0.78,Math.min(1,0.96-audio.motion*0.12-audio.roughness*0.08+audio.pitch*0.035));
